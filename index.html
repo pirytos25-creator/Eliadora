@@ -1,0 +1,4228 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eliadora</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --paper-texture: url('assets/parchment-classic.png');
+  --tree-paper-color: #f0ddb6;
+  --header-h: 58px;
+  --ui-scale: 1;
+  --senior-scale: 1.22;
+}
+body {
+  background: #e8d1a4 var(--paper-texture) center / cover no-repeat;
+  background-attachment: scroll;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  height: 100dvh;
+  overflow: hidden;
+  color: #2c1810;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: -12%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.55;
+  mix-blend-mode: multiply;
+  background:
+    radial-gradient(circle at 14% 18%, rgba(120,73,28,0.13) 0 8%, transparent 9%),
+    radial-gradient(circle at 78% 72%, rgba(96,54,22,0.11) 0 10%, transparent 11%),
+    radial-gradient(ellipse at 50% 50%, transparent 0 54%, rgba(61,34,11,0.12) 100%);
+  animation: ambientParchment 24s ease-in-out infinite alternate;
+  display: none;
+}
+body.theme-nature::before {
+  background:
+    radial-gradient(circle at 14% 18%, rgba(120,73,28,0.12) 0 8%, transparent 9%),
+    radial-gradient(circle at 78% 72%, rgba(96,54,22,0.10) 0 10%, transparent 11%),
+    radial-gradient(ellipse at 50% 50%, transparent 0 55%, rgba(63,34,10,0.12) 100%);
+}
+body.theme-deco20::before {
+  background:
+    radial-gradient(circle at 22% 24%, rgba(166,111,34,0.10) 0 9%, transparent 10%),
+    radial-gradient(circle at 82% 68%, rgba(105,72,31,0.12) 0 10%, transparent 11%),
+    radial-gradient(ellipse at 50% 50%, transparent 0 57%, rgba(80,50,18,0.13) 100%);
+}
+body.theme-interwar::before {
+  background:
+    radial-gradient(circle at 16% 72%, rgba(116,71,30,0.10) 0 9%, transparent 10%),
+    radial-gradient(circle at 76% 18%, rgba(88,56,27,0.10) 0 11%, transparent 12%),
+    radial-gradient(ellipse at 50% 50%, transparent 0 56%, rgba(69,40,17,0.13) 100%);
+}
+body.theme-prl::before {
+  background:
+    radial-gradient(circle at 18% 22%, rgba(74,43,20,0.16) 0 11%, transparent 12%),
+    radial-gradient(circle at 82% 78%, rgba(58,31,14,0.15) 0 12%, transparent 13%),
+    radial-gradient(ellipse at 50% 50%, transparent 0 50%, rgba(34,20,9,0.20) 100%);
+}
+@keyframes ambientParchment { from { transform: translate3d(-1%, -1%, 0) rotate(-0.3deg); } to { transform: translate3d(1.2%, 1%, 0) rotate(0.35deg); } }
+
+#app-header, #tree-container, #sidebar, #orphan-btn, #lightbox, #book-cover { position: relative; }
+#tree-container, #sidebar, #orphan-btn, #lightbox, #book-cover { z-index: 1; }
+
+#tree-svg .grain-drift { animation: grainDrift 18s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: center; }
+#tree-svg .grain-pulse { animation: grainPulse 9s ease-in-out infinite alternate; }
+.card-g.revealing { filter: drop-shadow(0 0 10px rgba(232,144,34,0.24)); }
+@keyframes grainDrift { from { transform: translate(-8px, -3px); } to { transform: translate(10px, 5px); } }
+@keyframes grainPulse { from { opacity: 0.18; } to { opacity: 0.42; } }
+
+/* ─── HEADER ───────────────────────────────────────────────────────────────── */
+#app-header {
+  background:
+    linear-gradient(90deg, rgba(243,212,142,0.95) 0%, rgba(255,235,181,0.90) 24%, rgba(230,186,92,0.70) 72%, rgba(71,41,15,0.55) 100%),
+    var(--paper-texture) center 18% / cover no-repeat;
+  color: #2b1505; padding: 0 20px; display: flex; align-items: center;
+  justify-content: space-between; min-height: 58px;
+  border-bottom: 2px solid #8b6914; box-shadow: 0 2px 14px rgba(73,43,12,0.34); position: relative; z-index: 10;
+}
+#title-block {
+  position: relative;
+  display: flex; flex-direction: column; justify-content: center; gap: 2px;
+  min-width: 340px;
+  padding: 5px 82px 6px 13px;
+  margin-left: -6px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, rgba(255,242,201,0.62), rgba(255,233,174,0.24));
+  box-shadow: inset 0 0 0 1px rgba(120,74,20,0.14), 0 2px 10px rgba(74,40,9,0.12);
+}
+#family-title { font-family: Georgia, serif; font-size: 19px; color: #170a02; letter-spacing: 2px; line-height: 1; text-shadow: 0 1px 0 rgba(255,244,205,0.96), 0 0 8px rgba(255,238,177,0.72); }
+#app-brand    { font-family: Georgia, serif; font-size: 10px; font-style: italic; color: #2b1606; letter-spacing: 3px; font-weight: 700; text-shadow: 0 1px 0 rgba(255,244,205,0.82); opacity: 0.98; }
+#lang-switcher { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+#nav-tools {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-right: 7px;
+  padding-right: 7px;
+  border-right: 1px solid rgba(196,168,122,0.22);
+}
+.nav-btn {
+  min-width: 27px; height: 24px;
+  background: rgba(253,239,198,0.48);
+  border: 1px solid #926d2e;
+  color: #4b2c0d;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: Georgia, serif;
+  font-size: 12px;
+  line-height: 1;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.15s;
+}
+.nav-btn:hover { background: rgba(111,70,20,0.20); border-color: #8b6914; color: #241406; transform: translateY(-1px); }
+.nav-btn:disabled { opacity: 0.32; cursor: default; transform: none; }
+#zoom-label { min-width: 42px; font-size: 10px; letter-spacing: 0.5px; }
+#person-search {
+  width: clamp(150px, 18vw, 260px);
+  height: 24px;
+  border: 1px solid #5a3e28;
+  border-radius: 4px;
+  background: rgba(253,248,240,0.92);
+  color: #2c1810;
+  padding: 3px 9px;
+  font-size: 12px;
+  outline: none;
+}
+#person-search:focus { border-color: #c8960a; box-shadow: 0 0 0 2px rgba(200,150,10,0.18); }
+.lang-btn {
+  background: rgba(253,239,198,0.30); border: 1px solid #926d2e; color: #4b2c0d;
+  padding: 3px 9px; cursor: pointer; font-size: 10px; letter-spacing: 1px;
+  border-radius: 3px; transition: all 0.15s; font-family: inherit;
+}
+.lang-btn:hover  { background: rgba(111,70,20,0.20); border-color: #8b6914; color: #241406; }
+.lang-btn.active { background: #8f6818; border-color: #c8960a; color: #fff8e8; }
+#theme-switcher { display: flex; gap: 5px; align-items: center; }
+.theme-btn {
+  width: 27px; height: 24px;
+  border: 1px solid #5a3e28;
+  border-radius: 50%;
+  cursor: pointer;
+  background: #d4b380;
+  box-shadow: inset 0 0 0 2px rgba(20,10,5,0.18);
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+.theme-btn:hover { transform: translateY(-1px); border-color: #c8960a; }
+.theme-btn.active { border-color: #f0d080; box-shadow: 0 0 0 2px rgba(240,208,128,0.24), inset 0 0 0 2px rgba(20,10,5,0.18); }
+.theme-btn[data-theme="nature"] { background: url('assets/parchment-classic.png') center / cover; }
+.theme-btn[data-theme="deco20"] { background: url('assets/parchment-papyrus.png') center / cover; }
+.theme-btn[data-theme="interwar"] { background: url('assets/parchment-vellum.png') center / cover; }
+.theme-btn[data-theme="prl"] { background: url('assets/parchment-smoke.png') center / cover; }
+.quick-tools {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding-left: 7px;
+  border-left: 1px solid rgba(92,62,28,0.28);
+}
+.tool-btn {
+  min-height: 24px;
+  background: rgba(253,239,198,0.38);
+  border: 1px solid #5a3e28;
+  color: #4b2c0d;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  padding: 3px 8px;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+}
+.tool-btn:hover { background: rgba(111,70,20,0.20); border-color: #8b6914; transform: translateY(-1px); }
+.tool-btn.active { background: #8f6818; color: #fff8e8; border-color: #c8960a; }
+#music-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+#senior-scale-controls {
+  display: none;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 7px;
+  border: 1px solid rgba(90,62,40,0.48);
+  border-radius: 4px;
+  background: rgba(255,241,199,0.54);
+}
+body.senior-mode #senior-scale-controls { display: flex; }
+#senior-scale {
+  width: 92px;
+  accent-color: #8f6818;
+}
+#senior-scale-label {
+  min-width: 42px;
+  color: #321806;
+  font-size: 10px;
+  font-weight: 800;
+  text-align: right;
+}
+#music-volume {
+  width: 78px;
+  accent-color: #8f6818;
+}
+#music-label {
+  min-width: 34px;
+  font-size: 10px;
+  color: #5b3916;
+  font-weight: 700;
+  text-align: right;
+}
+#lucid-academy-badge {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 60px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(118,74,22,0.34);
+  border-radius: 8px;
+  background: rgba(255,244,214,0.58);
+  box-shadow: 0 8px 20px rgba(62,34,8,0.18), inset 0 0 0 1px rgba(255,248,226,0.42);
+  backdrop-filter: blur(2px);
+}
+#lucid-academy-badge img {
+  width: 56px;
+  height: 44px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px rgba(118,35,255,0.46));
+}
+#learning-banner {
+  position: fixed;
+  left: 86px;
+  top: calc(var(--header-h) + 18px);
+  z-index: 9;
+  display: none;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 7px 9px;
+  border: 1px solid rgba(118,74,22,0.34);
+  border-radius: 8px;
+  background: rgba(255,244,214,0.88);
+  box-shadow: 0 8px 20px rgba(62,34,8,0.16);
+  color: #3a220b;
+  font-size: 12px;
+  font-weight: 900;
+}
+body.learning-mode #learning-banner { display: flex; }
+.learning-banner-btn {
+  border: 1px solid #8f6818;
+  border-radius: 5px;
+  background: #fff8e8;
+  color: #4b2c0d;
+  padding: 4px 7px;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.learning-banner-btn.primary { background: #8f6818; color: #fff8e8; }
+
+/* ─── TREE CONTAINER ───────────────────────────────────────────────────────── */
+#tree-container {
+  width: 100%; height: calc(100dvh - var(--header-h));
+  overflow-x: auto; overflow-y: auto;
+  background-color: var(--tree-paper-color);
+  background-image:
+    linear-gradient(rgba(255,246,219,0.30), rgba(176,118,47,0.10)),
+    var(--paper-texture);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  scroll-behavior: smooth;
+  cursor: grab;
+}
+#tree-container.panning { cursor: grabbing; user-select: none; }
+#tree-svg { display: block; transform-origin: 0 0; }
+.card-g { cursor: pointer; }
+.card-g.entering .portrait-img {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: portraitReveal 520ms cubic-bezier(0.2, 0.75, 0.22, 1) both;
+}
+.card-g.entering rect:nth-of-type(2) {
+  animation: cardWarmReveal 520ms ease-out both;
+}
+@keyframes portraitReveal {
+  0% { opacity: 0; transform: rotateY(78deg) scale(0.72); filter: sepia(1) saturate(1.9) brightness(1.35); }
+  58% { opacity: 1; transform: rotateY(-8deg) scale(1.03); filter: sepia(0.42) saturate(1.25) brightness(1.14); }
+  100% { opacity: 1; transform: rotateY(0deg) scale(1); filter: none; }
+}
+@keyframes cardWarmReveal {
+  0% { filter: drop-shadow(0 0 0 rgba(255,112,18,0)); }
+  45% { filter: drop-shadow(0 0 12px rgba(255,112,18,0.42)); }
+  100% { filter: drop-shadow(0 0 0 rgba(255,112,18,0)); }
+}
+
+/* Orphaned people indicator */
+#orphan-btn {
+  display: none;
+  position: fixed;
+  bottom: 18px; left: 18px;
+  background: #8b6914; color: #fff8e8;
+  border: none; border-radius: 20px;
+  padding: 7px 14px; font-size: 11px;
+  cursor: pointer; z-index: 300;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  font-family: inherit; letter-spacing: 0.3px;
+  transition: background 0.15s;
+}
+#orphan-btn:hover { background: #6a5010; }
+
+/* ─── SIDEBAR ──────────────────────────────────────────────────────────────── */
+/*
+  Sidebar overlays the tree. Always present in DOM.
+  Closed: translateX(calc(100% - 34px)) — only the toggle tab sticks out at right edge.
+  Open:   translateX(0) — full panel visible.
+  The toggle tab is at absolute left:0 of the sidebar, so it's always the visible handle.
+*/
+#sidebar {
+  position: fixed;
+  top: var(--header-h); right: 0;
+  width: 33vw; min-width: 260px; max-width: 440px;
+  height: calc(100vh - var(--header-h));
+  background:
+    linear-gradient(rgba(255,247,224,0.76), rgba(224,190,123,0.30)),
+    var(--paper-texture) center / cover no-repeat;
+  border-left: 2px solid #c8aa70;
+  box-shadow: -5px 0 20px rgba(0,0,0,0.13);
+  transform: translateX(calc(100% - 34px));
+  transition: transform 0.38s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 200;
+  display: flex;
+  overflow: hidden;
+}
+#sidebar.open { transform: translateX(0); }
+#sidebar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,244,213,0.48);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Horizontal grain lines matching the tree background */
+#sidebar::after {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: repeating-linear-gradient(
+    0deg, transparent, transparent 21px, rgba(180,155,100,0.10) 21px, rgba(180,155,100,0.10) 22px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Toggle tab — always the leftmost 34px of the sidebar */
+#sb-toggle {
+  flex-shrink: 0;
+  width: 34px;
+  background: #edddb8;
+  border: none;
+  border-right: 1px solid #c8aa70;
+  cursor: pointer;
+  color: #7a5810;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  position: relative; z-index: 2;
+}
+#sb-toggle:hover { background: #e0cb9a; }
+#sb-arrow { font-style: normal; line-height: 1; }
+
+/* Scrollable content area inside sidebar */
+#sb-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+#sb-inner {
+  padding: 24px 18px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ─── SIDEBAR CONTENT ──────────────────────────────────────────────────────── */
+#sb-photo-wrap { margin-bottom: 14px; position: relative; width: 144px; height: 144px; }
+#sb-photo-svg { display: block; }
+.sb-photo-video {
+  position: absolute;
+  left: 8px; top: 8px;
+  width: 128px; height: 128px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.6);
+}
+
+#sb-fullname {
+  font-family: Georgia, serif;
+  font-size: 19px; font-weight: 700;
+  color: #1c0f08; text-align: center;
+  margin: 0 0 6px; line-height: 1.3;
+  text-shadow: 0 1px 0 rgba(255,239,197,0.75);
+}
+#sb-info {
+  font-size: 12.5px; color: #4a321f;
+  text-align: center; margin-bottom: 22px;
+  line-height: 1.8;
+  font-weight: 600;
+}
+#sb-info .sb-age {
+  display: inline-block;
+  background: #d7ad4b; color: #2d1905;
+  border-radius: 10px; padding: 1px 10px;
+  font-size: 11px; font-weight: 800;
+  margin-top: 2px; letter-spacing: 0.3px;
+}
+
+.sb-section {
+  width: 100%;
+  margin-bottom: 22px;
+}
+.sb-section-title {
+  font-family: Georgia, serif;
+  font-size: 10px; letter-spacing: 2.2px;
+  text-transform: uppercase; color: #6b4516;
+  margin-bottom: 8px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(107,69,22,0.36);
+  width: 100%;
+  font-weight: 800;
+  text-shadow: 0 1px 0 rgba(255,242,204,0.65);
+}
+#sb-bio-text {
+  font-size: 13px; line-height: 1.75;
+  color: #432b18;
+  font-weight: 600;
+  white-space: pre-wrap;
+}
+
+/* ─── EDITOR ───────────────────────────────────────────────────────────────── */
+.sb-edit-btn { background:none;border:none;cursor:pointer;color:#6b4516;font-size:14px;padding:0 0 0 8px;opacity:0.82;transition:opacity 0.15s;vertical-align:middle; }
+.sb-edit-btn:hover { opacity:1;color:#8b6914; }
+.sb-add-section { width:100%;margin-top:18px;padding-top:14px;border-top:1px solid #d8c090; }
+.sb-add-row { display:flex;gap:7px;flex-wrap:wrap;width:100%;margin-top:8px; }
+.sb-add-btn { flex:1;min-width:80px;background:rgba(255,244,214,0.88);border:1px solid #a77b2e;color:#5c390b;font-size:11px;font-weight:700;padding:6px 8px;border-radius:6px;cursor:pointer;font-family:inherit;transition:background 0.15s; }
+.sb-add-btn:hover { background:#e0d0a0; }
+.sb-form-header { display:flex;align-items:center;gap:8px;width:100%;margin-bottom:16px; }
+.sb-form-back { background:none;border:none;cursor:pointer;color:#8b6914;font-size:20px;padding:0;line-height:1;transition:color 0.15s; }
+.sb-form-back:hover { color:#5a3e10; }
+.sb-form-title { font-family:Georgia,serif;font-size:13px;color:#4a3020;flex:1; }
+.sb-form-section { width:100%;margin-bottom:15px; }
+.sb-form-section-title { font-size:10px;letter-spacing:2px;color:#6b4516;text-transform:uppercase;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid rgba(107,69,22,0.36);font-weight:800; }
+.sb-context-label { font-size:11px;color:#4f3520;margin-bottom:14px;font-style:italic;background:rgba(255,244,214,0.78);padding:6px 10px;border-radius:5px;border:1px solid #c69d55;font-weight:600; }
+.sb-field { margin-bottom:9px; }
+.sb-label { display:block;font-size:10px;color:#5d3d20;margin-bottom:3px;letter-spacing:0.3px;font-weight:700; }
+.sb-input { width:100%;padding:6px 8px;border:1px solid #c8b090;border-radius:5px;font-size:12px;font-family:inherit;background:#fdf8f0;color:#2c1810;outline:none;transition:border-color 0.15s; }
+.sb-input:focus { border-color:#a07810; }
+.sb-helper { margin-top:5px;font-size:10px;line-height:1.35;color:#543514;font-weight:700;background:rgba(255,244,214,0.72);border:1px solid rgba(150,104,38,0.24);border-radius:4px;padding:5px 7px; }
+.sb-textarea { width:100%;padding:8px;border:1px solid #c8b090;border-radius:5px;font-size:12px;font-family:inherit;background:#fdf8f0;color:#2c1810;resize:vertical;min-height:90px;outline:none;line-height:1.6; }
+.sb-textarea:focus { border-color:#a07810; }
+.media-path-tools { display:flex;flex-wrap:wrap;gap:6px;margin-top:6px; }
+.media-path-btn { border:1px solid rgba(116,75,22,0.26);border-radius:5px;background:rgba(255,248,226,0.76);color:#4b2c0d;font-family:inherit;font-size:10px;font-weight:800;padding:5px 7px;cursor:pointer; }
+.media-path-btn:hover { background:#fff4d0;border-color:#a77b2e; }
+.sb-gender-row { display:flex;gap:16px; }
+.sb-radio-label { display:flex;align-items:center;gap:5px;font-size:12px;color:#4a3020;cursor:pointer; }
+.sb-nat-row { display:flex;flex-wrap:wrap;gap:5px; }
+.sb-nat-btn { display:flex;align-items:center;gap:4px;padding:4px 7px;border-radius:4px;cursor:pointer;font-size:12px;border:2px solid transparent;background:#f0e8d0;transition:all 0.12s; }
+.sb-nat-btn.active { border-color:#c8960a;background:#fff8e0; }
+.sb-nat-btn:hover { background:#e0d8b0; }
+.sb-bio-tabs { display:flex;gap:4px;margin-bottom:0; }
+.sb-bio-tab { padding:3px 10px;border-radius:4px 4px 0 0;font-size:10px;font-weight:600;cursor:pointer;border:1px solid #c8b090;border-bottom:none;background:#ede0c0;color:#8a7060;font-family:inherit; }
+.sb-bio-tab.active { background:#fdf8f0;color:#4a3020; }
+.sb-form-actions { display:flex;gap:8px;width:100%;margin-top:18px;padding-top:14px;border-top:1px solid #d8c090; }
+.sb-btn-save { flex:2;padding:9px;background:#8b6914;border:none;border-radius:6px;color:white;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:background 0.15s; }
+.sb-btn-save:hover { background:#6a5010; }
+.sb-btn-cancel { flex:1;padding:9px;background:#f0e8d0;border:1px solid #c8b090;border-radius:6px;color:#5a4030;font-size:12px;cursor:pointer;font-family:inherit;transition:background 0.15s; }
+.sb-btn-cancel:hover { background:#e0d0a0; }
+.sb-storage-note { font-size:10px;color:#5f4328;font-style:italic;text-align:center;margin-top:10px;width:100%;font-weight:600; }
+.export-btn { background:transparent;border:1px solid #5a3e28;color:#c4a87a;padding:3px 9px;cursor:pointer;font-size:10px;letter-spacing:1px;border-radius:3px;transition:all 0.15s;font-family:inherit; }
+.export-btn { background:rgba(255,239,198,0.34);border-color:#7d5218;color:#2b1606;font-weight:700;text-shadow:0 1px 0 rgba(255,244,205,0.62); }
+.export-btn:hover { background:rgba(143,104,24,0.22);border-color:#8b6914;color:#170a02; }
+.sb-error { color:#b03020;font-size:11px;margin-top:6px;padding:6px 8px;background:#fdf0ee;border-radius:4px;border:1px solid #e0a090; }
+body.senior-mode {
+  --ui-scale: var(--senior-scale);
+}
+body.senior-mode #app-header {
+  min-height: var(--header-h);
+  height: var(--header-h);
+  padding-top: 0;
+  padding-bottom: 0;
+}
+body.senior-mode #app-header #family-title { font-size: 19px; }
+body.senior-mode #app-header #app-brand { font-size: 10px; }
+body.senior-mode #app-header .nav-btn,
+body.senior-mode #app-header .lang-btn,
+body.senior-mode #app-header .export-btn,
+body.senior-mode #app-header .tool-btn {
+  min-height: 24px;
+  height: 24px;
+  font-size: 10px;
+  padding: 3px 8px;
+}
+body.senior-mode #app-header .nav-btn { font-size: 12px; }
+body.senior-mode #app-header #zoom-label { font-size: 10px; }
+body.senior-mode #app-header #person-search {
+  height: 24px;
+  font-size: 12px;
+  width: clamp(150px, 18vw, 260px);
+}
+body.senior-mode #app-header .theme-btn {
+  width: 27px;
+  height: 24px;
+}
+body.senior-mode #app-header #music-volume { width: 78px; }
+body.senior-mode #app-header #senior-scale { width: 92px; }
+body.senior-mode #app-header #music-label,
+body.senior-mode #app-header #senior-scale-label { font-size: 10px; min-width: 42px; }
+body.senior-mode #sidebar { width: 40vw; min-width: 340px; max-width: 540px; }
+body.senior-mode #sb-fullname { font-size: calc(20px * var(--senior-scale)); text-transform: uppercase; }
+body.senior-mode #sb-info,
+body.senior-mode #sb-bio-text,
+body.senior-mode .sb-input,
+body.senior-mode .sb-textarea,
+body.senior-mode .sb-radio-label,
+body.senior-mode .sb-helper {
+  font-size: calc(13px * var(--senior-scale));
+}
+body.senior-mode .sb-section-title,
+body.senior-mode .sb-form-section-title,
+body.senior-mode .sb-label {
+  font-size: calc(10px * var(--senior-scale));
+}
+body.senior-mode .sb-add-btn,
+body.senior-mode .sb-btn-save,
+body.senior-mode .sb-btn-cancel {
+  font-size: calc(12px * var(--senior-scale));
+  padding: calc(8px * var(--senior-scale)) calc(9px * var(--senior-scale));
+}
+body.senior-mode #tree-svg text {
+  text-transform: uppercase;
+  font-weight: 800;
+}
+#lightbox {
+  display: none;
+  position: fixed; inset: 0; z-index: 500;
+  align-items: center; justify-content: center;
+}
+#lb-overlay {
+  position: absolute; inset: 0;
+  background: rgba(20,10,5,0.78);
+  cursor: pointer;
+}
+#lb-content {
+  position: relative; z-index: 1;
+  max-width: 88vw; max-height: 88vh;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 14px;
+}
+#lb-close {
+  position: absolute; top: -38px; right: 0;
+  background: transparent; border: none;
+  color: rgba(255,255,255,0.8); font-size: 22px;
+  cursor: pointer; line-height: 1;
+  transition: color 0.15s;
+}
+#lb-close:hover { color: white; }
+#lb-img {
+  max-width: 100%; max-height: 76vh;
+  border-radius: 8px; object-fit: contain;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+}
+#lb-video {
+  display: none;
+  max-width: 100%; max-height: 76vh;
+  border-radius: 8px; object-fit: contain;
+  background: #120c08;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+}
+#lb-caption {
+  color: rgba(255,255,255,0.82);
+  font-family: Georgia, serif;
+  font-style: italic; font-size: 14px;
+  text-align: center; max-width: 520px;
+}
+
+/* ─── HELP TUTORIAL ───────────────────────────────────────────────────────── */
+#help-overlay {
+  position: fixed; inset: 0;
+  z-index: 1400;
+  display: none;
+  background:
+    linear-gradient(90deg, rgba(42,24,7,0.82), rgba(92,58,18,0.62)),
+    var(--paper-texture) center / cover no-repeat;
+  color: #2c1810;
+}
+#help-overlay.open { display: block; }
+#help-panel {
+  height: 100%;
+  display: grid;
+  grid-template-columns: minmax(210px, 270px) minmax(0, 1fr);
+  background: rgba(255,243,205,0.84);
+  backdrop-filter: blur(2px);
+}
+#help-nav {
+  padding: 22px 16px;
+  border-right: 1px solid rgba(115,74,24,0.28);
+  background: rgba(82,48,12,0.12);
+  overflow-y: auto;
+}
+#help-title {
+  font-family: Georgia, serif;
+  font-size: 26px;
+  line-height: 1;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+#help-subtitle {
+  font-size: 12px;
+  font-weight: 700;
+  color: #65421b;
+  line-height: 1.45;
+  margin-bottom: 18px;
+}
+.help-step-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 10px;
+  margin-bottom: 7px;
+  border: 1px solid rgba(116,75,22,0.26);
+  border-radius: 6px;
+  background: rgba(255,248,226,0.62);
+  color: #3a220b;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+}
+.help-step-btn.active {
+  background: #8f6818;
+  border-color: #c8960a;
+  color: #fff8e8;
+}
+.help-step-num {
+  width: 22px; height: 22px;
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: rgba(110,70,16,0.16);
+  font-size: 11px;
+}
+.help-step-btn.active .help-step-num { background: rgba(255,248,232,0.22); }
+#help-content {
+  position: relative;
+  overflow-y: auto;
+  padding: 26px clamp(22px, 4vw, 48px) 28px;
+}
+#help-close {
+  position: sticky;
+  top: 0;
+  float: right;
+  z-index: 2;
+  width: 34px; height: 34px;
+  border: 1px solid #8f6818;
+  border-radius: 50%;
+  background: rgba(255,248,226,0.92);
+  color: #4b2c0d;
+  font-size: 19px;
+  cursor: pointer;
+}
+.help-step {
+  display: none;
+  max-width: 980px;
+}
+.help-step.active { display: block; }
+.help-kicker {
+  color: #7a4e14;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.help-step h2 {
+  font-family: Georgia, serif;
+  font-size: clamp(30px, 4vw, 48px);
+  line-height: 1.05;
+  margin-bottom: 12px;
+}
+.help-lead {
+  max-width: 760px;
+  font-size: 16px;
+  line-height: 1.7;
+  color: #4a3020;
+  font-weight: 600;
+  margin-bottom: 18px;
+}
+.help-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+.help-card {
+  border: 1px solid rgba(116,75,22,0.22);
+  border-radius: 8px;
+  background: rgba(255,250,235,0.72);
+  padding: 14px;
+}
+.help-card h3 {
+  font-size: 15px;
+  margin-bottom: 7px;
+  color: #3a220b;
+}
+.help-card p, .help-card li {
+  font-size: 13px;
+  line-height: 1.55;
+  color: #4f3520;
+  font-weight: 600;
+}
+.help-card ul, .help-card ol { padding-left: 18px; }
+.help-demo-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.help-action {
+  border: 1px solid #8f6818;
+  border-radius: 5px;
+  background: #8f6818;
+  color: #fff8e8;
+  padding: 8px 11px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.help-action.secondary {
+  background: rgba(255,248,226,0.76);
+  color: #4b2c0d;
+}
+.avatar-lab {
+  display: grid;
+  grid-template-columns: minmax(160px, 220px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+#help-avatar-preview {
+  width: 180px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 3px solid #8f6818;
+  background: #f8edce;
+  object-fit: cover;
+  box-shadow: 0 8px 24px rgba(64,35,8,0.18);
+}
+.avatar-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(92px, 1fr));
+  gap: 8px;
+}
+.avatar-choice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(116,75,22,0.22);
+  border-radius: 6px;
+  background: rgba(255,250,235,0.72);
+  padding: 8px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  color: #3a220b;
+  cursor: pointer;
+}
+.avatar-choice.active { border-color: #c8960a; background: #fff8e0; }
+.avatar-choice img {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.help-checklist {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+.help-check {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid rgba(116,75,22,0.22);
+  border-radius: 6px;
+  background: rgba(255,250,235,0.74);
+  padding: 10px 12px;
+  cursor: pointer;
+  font-weight: 800;
+  color: #3a220b;
+}
+.help-check.done {
+  background: rgba(225,244,215,0.78);
+  border-color: #71994c;
+}
+.help-check span:first-child {
+  width: 22px; height: 22px;
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: rgba(110,70,16,0.16);
+}
+.help-check.done span:first-child { background: #71994c; color: white; }
+.help-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(116,75,22,0.20);
+}
+
+/* ─── BOOK COVER ──────────────────────────────────────────────────────────── */
+/*
+  The cover sits over everything when visible. On "open" it rotates around its
+  left edge (like a book cover opening) and fades out, revealing the tree.
+*/
+#book-cover {
+  position: fixed; inset: 0;
+  z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  perspective: 2200px;
+  background: radial-gradient(ellipse at center, rgba(103,63,19,0.34) 0%, rgba(43,22,6,0.72) 100%);
+  /* For the 3D animation to look right, give the cover its own stage */
+}
+#book-cover.hidden { display: none; }
+
+#cover-page {
+  position: relative;
+  width: 100vw;
+  height: 100dvh;
+  background:
+    radial-gradient(ellipse at 50% 48%, rgba(255,241,184,0.46) 0%, transparent 35%),
+    radial-gradient(ellipse at 16% 50%, rgba(129,75,24,0.20) 0%, transparent 38%),
+    radial-gradient(ellipse at 84% 50%, rgba(94,51,15,0.18) 0%, transparent 42%),
+    linear-gradient(90deg, rgba(116,70,22,0.34) 0 8%, rgba(255,235,176,0.18) 18% 82%, rgba(91,49,14,0.25) 100%),
+    var(--paper-texture) center / cover no-repeat,
+    linear-gradient(135deg, #e6c989 0%, #f1dca8 48%, #c4954e 100%);
+  border: 0;
+  border-radius: 0;
+  box-shadow:
+    inset 0 0 120px rgba(70,38,9,0.26),
+    inset 0 0 0 16px rgba(153,103,31,0.26),
+    inset 0 0 0 25px rgba(255,239,191,0.20),
+    inset 0 0 4px rgba(122,77,20,0.40),
+    0 0 100px rgba(88,48,12,0.20);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: clamp(24px, 4.2vh, 48px) clamp(86px, 9vw, 150px) clamp(24px, 4.2vh, 48px) clamp(126px, 12vw, 214px);
+  transform-style: preserve-3d;
+  transform-origin: left center;
+  transition: transform 1.3s cubic-bezier(0.55, 0, 0.35, 1), opacity 0.6s ease-out 0.7s;
+  overflow: hidden;
+}
+#book-cover.opening #cover-page {
+  transform: rotateY(-115deg);
+  opacity: 0;
+}
+.cover-glow-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(58vw, 860px);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+  background:
+    radial-gradient(circle, transparent 0 56%, rgba(131,82,24,0.16) 57% 58%, transparent 59%),
+    conic-gradient(from 12deg, transparent 0 8%, rgba(143,94,29,0.26) 10%, transparent 12% 25%, rgba(143,94,29,0.20) 28%, transparent 30% 100%);
+  filter: drop-shadow(0 0 20px rgba(122,77,20,0.14));
+  opacity: 0.62;
+  animation: coverRingTurn 22s linear infinite;
+}
+.cover-seal {
+  position: absolute;
+  right: clamp(76px, 8vw, 156px);
+  top: clamp(78px, 10vh, 138px);
+  width: clamp(78px, 7vw, 120px);
+  height: clamp(78px, 7vw, 120px);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #2a1607;
+  font-family: Georgia, serif;
+  font-weight: 900;
+  letter-spacing: 2px;
+  font-size: clamp(9px, 0.9vw, 12px);
+  text-transform: uppercase;
+  background:
+    radial-gradient(circle at 42% 35%, rgba(255,242,175,0.8), transparent 26%),
+    radial-gradient(circle, #e5bd54 0 42%, #a46c1f 65%, #6e3d0d 100%);
+  border: 1px solid rgba(255,226,130,0.72);
+  box-shadow: inset 0 2px 10px rgba(255,243,190,0.28), inset 0 -10px 20px rgba(45,22,4,0.45), 0 10px 28px rgba(0,0,0,0.32);
+}
+.cover-seal::before,
+.cover-seal::after {
+  content: '';
+  position: absolute;
+  inset: 9px;
+  border-radius: 50%;
+  border: 1px dashed rgba(60,30,6,0.42);
+}
+.cover-seal::after {
+  inset: 18px;
+  border-style: solid;
+  opacity: 0.5;
+}
+.cover-bookmark {
+  position: absolute;
+  top: 0;
+  right: clamp(172px, 17vw, 310px);
+  width: clamp(28px, 2.4vw, 44px);
+  height: clamp(132px, 18vh, 240px);
+  background: linear-gradient(180deg, #b0181c, #6f0e12);
+  box-shadow: inset 6px 0 12px rgba(255,186,128,0.16), 0 8px 22px rgba(0,0,0,0.34);
+  opacity: 0.86;
+}
+.cover-bookmark::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: -24px;
+  border-left: calc(clamp(28px, 2.4vw, 44px) / 2) solid transparent;
+  border-right: calc(clamp(28px, 2.4vw, 44px) / 2) solid transparent;
+  border-top: 24px solid #6f0e12;
+}
+.cover-dust {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.56;
+  background:
+    radial-gradient(circle at 24% 22%, rgba(110,65,16,0.25) 0 1px, transparent 2px),
+    radial-gradient(circle at 68% 18%, rgba(110,65,16,0.19) 0 1px, transparent 2px),
+    radial-gradient(circle at 58% 74%, rgba(110,65,16,0.21) 0 1px, transparent 2px),
+    radial-gradient(circle at 36% 64%, rgba(110,65,16,0.18) 0 1px, transparent 2px);
+  background-size: 220px 180px;
+  animation: coverDustFloat 14s ease-in-out infinite alternate;
+}
+@keyframes coverRingTurn { to { transform: translate(-50%, -50%) rotate(360deg); } }
+@keyframes coverDustFloat { from { transform: translate3d(-8px,-6px,0); } to { transform: translate3d(10px,8px,0); } }
+
+/* Ornate gold border inside the cover */
+#cover-page::before {
+  content: '';
+  position: absolute;
+  inset: clamp(14px, 2.8vw, 36px);
+  border: 1px solid rgba(118,75,22,0.72);
+  border-radius: 2px;
+  pointer-events: none;
+  opacity: 0.86;
+}
+#cover-page::after {
+  content: '';
+  position: absolute;
+  inset: clamp(22px, 3.8vw, 54px);
+  border: 1px solid rgba(142,90,27,0.42);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+.cover-spine {
+  position: absolute;
+  left: clamp(32px, 4.8vw, 88px);
+  top: clamp(34px, 5vh, 64px);
+  bottom: clamp(34px, 5vh, 64px);
+  width: clamp(58px, 6.2vw, 104px);
+  border: 1px solid rgba(232,180,64,0.48);
+  background:
+    linear-gradient(90deg, rgba(255,236,174,0.36), rgba(139,86,27,0.24) 34%, rgba(90,48,14,0.18) 62%, rgba(255,236,174,0.20)),
+    repeating-linear-gradient(0deg, transparent 0 38px, rgba(129,80,22,0.18) 39px 40px),
+    var(--paper-texture) center / cover,
+    linear-gradient(180deg, #c89343 0%, #e4c985 50%, #a96f2b 100%);
+  box-shadow:
+    inset 12px 0 22px rgba(255,238,190,0.22),
+    inset -14px 0 24px rgba(87,48,12,0.24),
+    8px 0 28px rgba(83,45,10,0.22);
+}
+.cover-spine span {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  white-space: nowrap;
+  font-family: Georgia, serif;
+  font-size: clamp(10px, 1.1vw, 14px);
+  letter-spacing: 8px;
+  color: rgba(50,25,6,0.82);
+  text-transform: uppercase;
+  text-shadow: 0 1px 0 rgba(255,242,198,0.82);
+}
+.cover-page-edge {
+  position: absolute;
+  right: clamp(20px, 2.2vw, 42px);
+  top: clamp(54px, 7vh, 92px);
+  bottom: clamp(54px, 7vh, 92px);
+  width: clamp(18px, 2vw, 32px);
+  background:
+    repeating-linear-gradient(0deg, rgba(255,237,190,0.86) 0 2px, rgba(128,83,31,0.30) 3px 4px),
+    linear-gradient(90deg, rgba(255,244,207,0.78), rgba(126,74,31,0.18));
+  border: 1px solid rgba(136,86,24,0.36);
+  box-shadow: inset 8px 0 12px rgba(255,245,190,0.24), -10px 0 28px rgba(83,45,10,0.18);
+  opacity: 0.72;
+}
+.cover-corner {
+  position: absolute;
+  width: clamp(70px, 7vw, 118px);
+  height: clamp(70px, 7vw, 118px);
+  color: rgba(232,183,74,0.72);
+  border-color: rgba(232,183,74,0.72);
+  pointer-events: none;
+  filter: drop-shadow(0 0 8px rgba(232,180,64,0.22));
+}
+.cover-corner::before,
+.cover-corner::after {
+  content: '';
+  position: absolute;
+  background: rgba(232,183,74,0.66);
+}
+.cover-corner::before { width: 100%; height: 1px; }
+.cover-corner::after { width: 1px; height: 100%; }
+.cover-corner-tl { left: clamp(44px, 4.6vw, 86px); top: clamp(44px, 4.6vw, 86px); border-top: 2px solid; border-left: 2px solid; }
+.cover-corner-tr { right: clamp(44px, 4.6vw, 86px); top: clamp(44px, 4.6vw, 86px); border-top: 2px solid; border-right: 2px solid; }
+.cover-corner-bl { left: clamp(44px, 4.6vw, 86px); bottom: clamp(44px, 4.6vw, 86px); border-bottom: 2px solid; border-left: 2px solid; }
+.cover-corner-br { right: clamp(44px, 4.6vw, 86px); bottom: clamp(44px, 4.6vw, 86px); border-bottom: 2px solid; border-right: 2px solid; }
+.cover-corner-tl::before,.cover-corner-tr::before { top: 13px; }
+.cover-corner-bl::before,.cover-corner-br::before { bottom: 13px; }
+.cover-corner-tl::after,.cover-corner-bl::after { left: 13px; }
+.cover-corner-tr::after,.cover-corner-br::after { right: 13px; }
+.cover-clasp {
+  position: absolute;
+  right: clamp(52px, 5vw, 96px);
+  width: clamp(92px, 8vw, 148px);
+  height: clamp(22px, 2vw, 34px);
+  background: linear-gradient(180deg, #e3bb57, #8b5d18 52%, #e0b24a);
+  border: 1px solid rgba(255,226,130,0.68);
+  border-radius: 3px;
+  box-shadow: inset 0 1px 2px rgba(255,244,196,0.48), 0 6px 20px rgba(0,0,0,0.36);
+}
+.cover-clasp::after {
+  content: '';
+  position: absolute;
+  right: 17%;
+  top: 50%;
+  width: 11px; height: 11px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: #3a2009;
+  box-shadow: inset 0 1px 0 rgba(255,226,130,0.35);
+}
+.cover-clasp-top { top: 29%; }
+.cover-clasp-bottom { bottom: 22%; }
+.cover-side {
+  position: absolute;
+  top: 21%;
+  bottom: 18%;
+  width: clamp(128px, 13vw, 228px);
+  display: grid;
+  grid-template-rows: repeat(3, 1fr);
+  align-items: center;
+  justify-items: center;
+  pointer-events: none;
+  background: url('assets/cover-genealogy-ornament.png') center / contain no-repeat;
+  opacity: 0.78;
+  filter: sepia(0.22) contrast(1.05) drop-shadow(0 0 10px rgba(112,67,16,0.12));
+}
+.cover-side-left { left: clamp(130px, 13vw, 248px); }
+.cover-side-right { right: clamp(102px, 10vw, 196px); transform: scaleX(-1); }
+.cover-medallion {
+  width: clamp(54px, 5.4vw, 88px);
+  height: clamp(54px, 5.4vw, 88px);
+  border-radius: 50%;
+  border: 1px solid rgba(232,183,74,0.55);
+  background:
+    radial-gradient(circle at 50% 42%, rgba(255,238,170,0.44) 0 2px, transparent 3px),
+    radial-gradient(circle, rgba(229,180,75,0.14), rgba(34,19,7,0.58) 70%);
+  box-shadow: inset 0 0 18px rgba(255,224,130,0.08), 0 0 18px rgba(232,180,64,0.12);
+  position: relative;
+  opacity: 0.72;
+  display: none;
+}
+.cover-medallion::before,
+.cover-medallion::after {
+  content: '';
+  position: absolute;
+  background: rgba(232,183,74,0.45);
+  left: 50%;
+  transform: translateX(-50%);
+}
+.cover-medallion::before { top: 18%; width: 1px; height: 64%; }
+.cover-medallion::after { top: 49%; width: 46%; height: 1px; }
+.cover-rune-strip {
+  position: absolute;
+  left: clamp(148px, 14vw, 270px);
+  right: clamp(120px, 12vw, 228px);
+  bottom: clamp(62px, 7vh, 104px);
+  display: flex;
+  justify-content: space-between;
+  color: rgba(60,30,7,0.38);
+  font-family: Georgia, serif;
+  font-size: clamp(11px, 1.1vw, 16px);
+  letter-spacing: 5px;
+  pointer-events: none;
+}
+#cover-centerpiece {
+  position: relative;
+  z-index: 2;
+  width: min(880px, 58vw);
+  min-height: min(78dvh, 680px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(18px, 2.6vh, 28px) clamp(22px, 3vw, 54px);
+  background:
+    radial-gradient(ellipse at 50% 46%, rgba(255,245,205,0.52) 0%, transparent 62%),
+    linear-gradient(180deg, rgba(255,239,191,0.28), rgba(128,76,22,0.08));
+  border: 1px solid rgba(123,76,20,0.34);
+  box-shadow:
+    inset 0 0 44px rgba(255,244,204,0.16),
+    0 0 46px rgba(112,67,16,0.12);
+}
+#cover-centerpiece::before,
+#cover-centerpiece::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  width: min(520px, 44vw);
+  height: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, transparent, rgba(116,72,20,0.58), transparent);
+}
+#cover-centerpiece::before { top: clamp(16px, 2.2vh, 28px); }
+#cover-centerpiece::after { bottom: clamp(16px, 2.2vh, 28px); }
+
+#cover-title {
+  font-family: 'Cinzel', 'Trajan Pro', Georgia, serif;
+  font-size: clamp(16px, 2.6vw, 28px);
+  color: #3a1b06;
+  letter-spacing: clamp(6px, 0.9vw, 13px);
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 6px;
+  text-shadow: 0 1px 0 rgba(255,241,194,0.88), 0 0 12px rgba(255,226,138,0.38);
+}
+#cover-family {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: clamp(44px, 6.4vw, 82px);
+  font-weight: 700;
+  color: #2b1405;
+  text-align: center;
+  margin-bottom: clamp(14px, 2.2vh, 26px);
+  letter-spacing: 3px;
+  text-shadow:
+    0 1px 0 rgba(255,242,199,0.92),
+    0 0 18px rgba(255,226,138,0.40);
+}
+#cover-tree-svg {
+  width: min(54vw, 620px);
+  flex: 1;
+  max-height: 50vh;
+  min-height: 300px;
+  filter: drop-shadow(0 0 18px rgba(128,76,20,0.22));
+}
+#cover-subtitle {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: clamp(12px, 1.5vw, 16px);
+  color: #553013;
+  letter-spacing: clamp(4px, 0.62vw, 9px);
+  text-align: center;
+  margin-top: 10px;
+  font-style: italic;
+  opacity: 0.96;
+}
+#cover-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 22px;
+}
+#cover-open-btn,
+#cover-help-btn {
+  padding: 14px clamp(34px, 5vw, 74px);
+  background: linear-gradient(180deg, #e0b755 0%, #a87924 100%);
+  border: 1px solid #8e5c17;
+  border-radius: 4px;
+  color: #1f0d02;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow:
+    0 0 0 1px rgba(232,180,40,0.3),
+    0 4px 14px rgba(0,0,0,0.5),
+    inset 0 1px 0 rgba(255,220,140,0.4);
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+}
+#cover-help-btn {
+  padding-left: 24px;
+  padding-right: 24px;
+  background: rgba(255,241,196,0.82);
+}
+#cover-open-btn:hover,
+#cover-help-btn:hover {
+  background: linear-gradient(180deg, #f0cd72 0%, #b9872d 100%);
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 0 1px rgba(232,180,40,0.5),
+    0 6px 18px rgba(0,0,0,0.6),
+    inset 0 1px 0 rgba(255,220,140,0.5);
+}
+#cover-open-btn:active,
+#cover-help-btn:active { transform: translateY(0); }
+
+/* Background dims and fades together with the cover */
+#book-cover { transition: background 1s ease-out, opacity 0.5s ease-out 1s; }
+#book-cover.opening { background: radial-gradient(ellipse at center, rgba(20,10,5,0) 0%, rgba(8,4,2,0) 100%); }
+#book-cover.fade-out { opacity: 0; pointer-events: none; }
+
+/* ─── PRINT STYLES ────────────────────────────────────────────────────────── */
+@media print {
+  body { background: white; overflow: visible; height: auto; }
+  #app-header, #sidebar, #orphan-btn, #book-cover, #lightbox, #help-overlay, #lucid-academy-badge, #learning-banner { display: none !important; }
+  #tree-container { height: auto !important; width: auto !important; overflow: visible !important; }
+  #tree-svg { background: white; }
+  /* Use SVG built-in scaling — printers handle this well */
+  @page { size: landscape; margin: 1cm; }
+}
+
+/* Helpful class when generating PDF/print preview */
+body.printing #tree-container { overflow: visible; height: auto; }
+body.printing #sidebar, body.printing #orphan-btn { display: none; }
+
+@media (max-width: 760px) {
+  #app-header { height: auto; min-height: 58px; padding: 8px 10px; gap: 8px; align-items: flex-start; }
+  #lang-switcher { flex-wrap: wrap; justify-content: flex-end; }
+  #tree-container { height: calc(100dvh - var(--header-h)); }
+  #nav-tools { order: 9; width: 100%; justify-content: flex-end; margin-right: 0; padding-right: 0; border-right: 0; }
+  #person-search { width: min(100%, 210px); flex: 1; }
+  #theme-switcher { order: 10; width: 100%; justify-content: flex-end; }
+  .quick-tools { order: 11; width: 100%; justify-content: flex-end; padding-left: 0; border-left: 0; }
+  #music-volume { width: min(32vw, 120px); }
+  #title-block { min-width: min(100%, 330px); padding-right: 76px; }
+  #lucid-academy-badge { right: 8px; width: 58px; height: 46px; }
+  #lucid-academy-badge img { width: 52px; height: 40px; }
+  #learning-banner { left: 62px; right: 8px; top: auto; bottom: 12px; flex-wrap: wrap; }
+  body.senior-mode #sidebar { width: calc(100vw - 34px); min-width: 0; max-width: none; }
+  #cover-page { padding: 24px 18px 24px 58px; }
+  .cover-spine { left: 14px; width: 34px; top: 22px; bottom: 22px; }
+  .cover-spine span { font-size: 9px; letter-spacing: 5px; }
+  .cover-side, .cover-clasp, .cover-rune-strip, .cover-seal, .cover-bookmark { display: none; }
+  .cover-page-edge { right: 10px; width: 10px; }
+  #cover-centerpiece { width: min(88vw, 560px); min-height: 76dvh; padding: 18px 14px; }
+  #cover-family { font-size: clamp(34px, 11vw, 54px); }
+  #cover-tree-svg { width: min(78vw, 430px); min-height: 250px; }
+  #help-panel { grid-template-columns: 1fr; }
+  #help-nav { border-right: 0; border-bottom: 1px solid rgba(115,74,24,0.28); padding: 14px; }
+  #help-content { padding: 18px 14px 22px; }
+  .help-grid, .avatar-lab { grid-template-columns: 1fr; }
+  .avatar-choice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #help-avatar-preview { width: 140px; }
+}
+@media (min-width: 761px) and (max-width: 1180px) {
+  #cover-page { padding-left: clamp(96px, 13vw, 150px); padding-right: clamp(58px, 7vw, 96px); }
+  .cover-side { opacity: 0.36; width: 110px; }
+  .cover-side-left { left: 108px; }
+  .cover-side-right { right: 74px; }
+  .cover-rune-strip { left: 132px; right: 100px; opacity: 0.58; }
+  #cover-centerpiece { width: min(720px, 68vw); }
+}
+</style>
+<script src="eliadora-data.js"></script>
+</head>
+<body class="theme-nature">
+
+<header id="app-header">
+  <div id="title-block">
+    <div id="family-title"><span id="family-label">Rodzina</span>&nbsp;<span id="family-name">Góreckich</span></div>
+    <div id="app-brand">Eliadora &middot; <span id="app-subtitle">drzewo genealogiczne</span></div>
+    <aside id="lucid-academy-badge" title="Lucid Academy" aria-label="Lucid Academy">
+      <img src="assets/lucid-academy-icon.png" alt="">
+    </aside>
+  </div>
+  <div id="lang-switcher">
+    <div id="nav-tools" role="group" aria-label="Nawigacja">
+      <button class="nav-btn" id="nav-back" onclick="goHistory(-1)" title="Wstecz" aria-label="Wstecz">‹</button>
+      <button class="nav-btn" id="nav-forward" onclick="goHistory(1)" title="Dalej" aria-label="Dalej">›</button>
+      <button class="nav-btn" onclick="navHome()" title="Osoba główna" aria-label="Przejdź do osoby głównej">⌂</button>
+      <input id="person-search" list="people-search-list" placeholder="Szukaj osoby" aria-label="Szukaj osoby po imieniu" onchange="navSearchCommit()" onkeydown="if(event.key==='Enter') navSearchCommit()">
+      <datalist id="people-search-list"></datalist>
+      <button class="nav-btn" onclick="centerCurrent()" title="Wyśrodkuj" aria-label="Wyśrodkuj drzewo">◎</button>
+      <button class="nav-btn" onclick="zoomTree(-0.1)" title="Pomniejsz" aria-label="Pomniejsz drzewo">−</button>
+      <button class="nav-btn" id="zoom-label" onclick="resetZoom()" title="Reset zoom" aria-label="Resetuj powiększenie do 100 procent">100%</button>
+      <button class="nav-btn" onclick="zoomTree(0.1)" title="Powiększ" aria-label="Powiększ drzewo">+</button>
+    </div>
+    <div id="theme-switcher" role="group" aria-label="Tło">
+      <button class="theme-btn active" data-theme="nature" onclick="setTheme('nature')" title="Pergamin klasyczny" aria-label="Pergamin klasyczny"></button>
+      <button class="theme-btn" data-theme="deco20" onclick="setTheme('deco20')" title="Papirus" aria-label="Papirus"></button>
+      <button class="theme-btn" data-theme="interwar" onclick="setTheme('interwar')" title="Pergamin welinowy" aria-label="Pergamin welinowy"></button>
+      <button class="theme-btn" data-theme="prl" onclick="setTheme('prl')" title="Pergamin dymny" aria-label="Pergamin dymny"></button>
+    </div>
+    <div class="quick-tools" role="group" aria-label="Dostępność i muzyka">
+      <button class="tool-btn" id="senior-toggle" type="button" onclick="toggleSeniorMode()" title="Tryb Senior: większe litery">SENIOR</button>
+      <div id="senior-scale-controls" title="Skala trybu Senior">
+        <input id="senior-scale" type="range" min="110" max="170" step="5" value="122" oninput="setSeniorScale(this.value)">
+        <span id="senior-scale-label">122%</span>
+      </div>
+      <div id="music-controls">
+        <button class="tool-btn" id="music-toggle" type="button" onclick="toggleBackgroundMusic()" title="Muzyka w tle" aria-label="Włącz/wyłącz muzykę w tle">♪</button>
+        <input id="music-volume" type="range" min="0" max="100" value="35" oninput="setBackgroundVolume(this.value)" title="Głośność muzyki" aria-label="Głośność muzyki w tle">
+        <span id="music-label" aria-hidden="true">35%</span>
+      </div>
+    </div>
+    <button class="export-btn" id="help-btn" onclick="openHelpTutorial()" title="Samouczek obsługi i edycji" aria-label="Otwórz samouczek obsługi i edycji drzewa">HELP</button>
+    <button class="export-btn" id="cover-btn" onclick="showCover()" title="Okładka" aria-label="Pokaż okładkę księgi">📖</button>
+    <button class="export-btn" id="pdf-btn" onclick="exportToPDF()" title="Eksport PDF" aria-label="Eksportuj drzewo do PDF">📄 PDF</button>
+    <button class="export-btn" id="print-btn" onclick="printTree()" title="Drukuj" aria-label="Drukuj drzewo">🖨</button>
+    <button class="export-btn" id="export-btn" onclick="exportDataFile()" aria-label="Pobierz dane jako plik JS">↓ JS</button>
+    <button class="export-btn" style="border-color:#a05030;color:#e0a070" onclick="resetToDataFile()" aria-label="Przywróć oryginalne dane">↺ Reset</button>
+    <button class="lang-btn active" data-lang="pl" aria-label="Polski">PL</button>
+    <button class="lang-btn" data-lang="en" aria-label="English">EN</button>
+    <button class="lang-btn" data-lang="es" aria-label="Español">ES</button>
+    <button class="lang-btn" data-lang="fr" aria-label="Français">FR</button>
+  </div>
+</header>
+
+<audio id="background-music" src="assets/The_Keeper_s_Ledger.mp3" preload="auto" loop></audio>
+<aside id="learning-banner" aria-label="Tryb nauki">
+  <span>Drzewo do nauki</span>
+  <button class="learning-banner-btn primary" type="button" onclick="openHelpTutorial(6)">Praktyka</button>
+  <button class="learning-banner-btn" type="button" onclick="resetLearningTree()">Reset nauki</button>
+  <button class="learning-banner-btn" type="button" onclick="exitLearningTree()">Wróć</button>
+</aside>
+<div id="tree-container"><svg id="tree-svg"></svg></div>
+<button id="orphan-btn" onclick="showOrphans()"></button>
+
+<!-- SIDEBAR ─────────────────────────────────────────────────────────────── -->
+<aside id="sidebar">
+  <button id="sb-toggle" aria-label="Toggle sidebar">
+    <span id="sb-arrow">&#9664;</span>
+  </button>
+  <div id="sb-scroll">
+    <div id="sb-inner">
+
+      <div id="sb-photo-wrap">
+        <svg id="sb-photo-svg" width="144" height="144" viewBox="0 0 144 144"></svg>
+      </div>
+
+      <h2 id="sb-fullname"></h2>
+      <div id="sb-info"></div>
+
+      <div class="sb-section">
+        <div class="sb-section-title" id="sb-bio-title"></div>
+        <p id="sb-bio-text"></p>
+      </div>
+
+    </div>
+  </div>
+</aside>
+
+<!-- LIGHTBOX ────────────────────────────────────────────────────────────── -->
+<div id="lightbox">
+  <div id="lb-overlay"></div>
+  <div id="lb-content">
+    <button id="lb-close">&#10005;</button>
+    <img id="lb-img" alt="">
+    <video id="lb-video" controls playsinline></video>
+    <p id="lb-caption"></p>
+  </div>
+</div>
+
+<!-- HELP TUTORIAL ───────────────────────────────────────────────────────── -->
+<section id="help-overlay" aria-hidden="true">
+  <div id="help-panel" role="dialog" aria-modal="true" aria-labelledby="help-title">
+    <nav id="help-nav" aria-label="Kroki samouczka">
+      <div id="help-title">HELP</div>
+      <div id="help-subtitle">Interaktywny samouczek obsługi, edycji i budowania drzewa od zera.</div>
+      <button class="help-step-btn active" type="button" data-help-step="0" onclick="showHelpStep(0)"><span class="help-step-num">1</span> Start</button>
+      <button class="help-step-btn" type="button" data-help-step="1" onclick="showHelpStep(1)"><span class="help-step-num">2</span> Nawigacja</button>
+      <button class="help-step-btn" type="button" data-help-step="2" onclick="showHelpStep(2)"><span class="help-step-num">3</span> Edycja osoby</button>
+      <button class="help-step-btn" type="button" data-help-step="3" onclick="showHelpStep(3)"><span class="help-step-num">4</span> Dodawanie rodziny</button>
+      <button class="help-step-btn" type="button" data-help-step="4" onclick="showHelpStep(4)"><span class="help-step-num">5</span> Avatary z buźkami</button>
+      <button class="help-step-btn" type="button" data-help-step="5" onclick="showHelpStep(5)"><span class="help-step-num">6</span> Zdjęcia i foldery</button>
+      <button class="help-step-btn" type="button" data-help-step="6" onclick="showHelpStep(6)"><span class="help-step-num">7</span> Praktyka</button>
+      <button class="help-step-btn" type="button" data-help-step="7" onclick="showHelpStep(7)"><span class="help-step-num">8</span> Zapis i eksport</button>
+    </nav>
+    <main id="help-content">
+      <button id="help-close" type="button" onclick="closeHelpTutorial()" aria-label="Zamknij samouczek">×</button>
+
+      <article class="help-step active" data-help-step="0">
+        <div class="help-kicker">Od czego zacząć</div>
+        <h2>To jest mapa rodziny. Klikasz osobę, a drzewo układa się wokół niej.</h2>
+        <p class="help-lead">Każda karta w środku drzewa może stać się centrum widoku. Po kliknięciu osoby otwiera się panel boczny z biografią, datami i przyciskami edycji.</p>
+        <div class="help-grid">
+          <div class="help-card">
+            <h3>Najprostszy rytm pracy</h3>
+            <ol>
+              <li>Wybierz osobę w drzewie.</li>
+              <li>Otwórz panel po prawej, jeśli jest schowany.</li>
+              <li>Kliknij ołówek przy imieniu.</li>
+              <li>Uzupełnij dane i zapisz.</li>
+            </ol>
+          </div>
+          <div class="help-card">
+            <h3>Co możesz zmieniać</h3>
+            <p>Imię, nazwisko, pełne imię, płeć, daty, miejsca, narodowość, portret, animację, wideo i biografię w kilku językach.</p>
+          </div>
+        </div>
+        <div class="help-checklist">
+          <button class="help-check" type="button" onclick="toggleHelpCheck(this)"><span>✓</span><span>Kliknij dowolną kartę osoby w drzewie.</span></button>
+          <button class="help-check" type="button" onclick="toggleHelpCheck(this)"><span>✓</span><span>Sprawdź panel boczny po prawej stronie.</span></button>
+        </div>
+      </article>
+
+      <article class="help-step" data-help-step="1">
+        <div class="help-kicker">Poruszanie się</div>
+        <h2>Górny pasek to sterowanie widokiem.</h2>
+        <p class="help-lead">Używaj strzałek do cofania i ponawiania wyboru, domku do powrotu do osoby głównej, wyszukiwarki do znalezienia konkretnej osoby oraz przycisków zoomu do dopasowania drzewa.</p>
+        <div class="help-grid">
+          <div class="help-card"><h3>Szukaj osoby</h3><p>Wpisz imię lub nazwisko w polu wyszukiwania i naciśnij Enter. Drzewo przejdzie do najlepszego wyniku.</p></div>
+          <div class="help-card"><h3>Centrowanie i zoom</h3><p>Przycisk z kółkiem centruje aktualną osobę. Plus i minus zmieniają skalę, a etykieta procentowa resetuje zoom.</p></div>
+        </div>
+        <div class="help-demo-bar">
+          <button class="help-action secondary" type="button" onclick="closeHelpTutorial(); navHome();">Pokaż osobę główną</button>
+          <button class="help-action secondary" type="button" onclick="closeHelpTutorial(); centerCurrent();">Wyśrodkuj aktualną osobę</button>
+        </div>
+      </article>
+
+      <article class="help-step" data-help-step="2">
+        <div class="help-kicker">Edycja</div>
+        <h2>Ołówek w panelu bocznym otwiera formularz osoby.</h2>
+        <p class="help-lead">Formularz zapisuje zmiany w przeglądarce. Żeby przenieść je do pliku projektu, użyj potem przycisku eksportu JS.</p>
+        <div class="help-grid">
+          <div class="help-card"><h3>Dane podstawowe</h3><p>Imię i nazwisko widoczne są na karcie. Pełne imię służy do dokładniejszego opisu w panelu.</p></div>
+          <div class="help-card"><h3>Daty i miejsca</h3><p>Datę możesz wpisać jako rok, rok-miesiąc albo pełną datę, np. 1982, 1982-04 lub 1982-04-15.</p></div>
+          <div class="help-card"><h3>Narodowość</h3><p>W tej wersji dostępna jest Polska oraz kraje sąsiadujące: Niemcy, Czechy, Słowacja, Ukraina, Białoruś, Litwa i Rosja.</p></div>
+          <div class="help-card"><h3>Biografia</h3><p>Zakładki PL, EN, ES i FR pozwalają zapisać opis osoby w różnych językach.</p></div>
+        </div>
+        <div class="help-demo-bar">
+          <button class="help-action" type="button" onclick="startHelpEditPractice()">Przećwicz edycję aktualnej osoby</button>
+        </div>
+      </article>
+
+      <article class="help-step" data-help-step="3">
+        <div class="help-kicker">Budowanie drzewa</div>
+        <h2>Nowe gałęzie dodajesz z panelu wybranej osoby.</h2>
+        <p class="help-lead">Najpierw ustaw centrum na osobie, od której chcesz budować rodzinę. Potem w panelu użyj przycisków dodawania rodzica, dziecka albo małżonka.</p>
+        <div class="help-grid">
+          <div class="help-card"><h3>Rodzic</h3><p>Dodaje osobę w pokoleniu wyżej. Jedna osoba może mieć maksymalnie dwoje widocznych rodziców.</p></div>
+          <div class="help-card"><h3>Dziecko</h3><p>Dodaje osobę w pokoleniu niżej i wiąże ją z aktualnie wybraną osobą.</p></div>
+          <div class="help-card"><h3>Małżonek</h3><p>Dodaje partnera/partnerkę po drugiej stronie pary. Program sam podpowiada przeciwną płeć, ale możesz ją zmienić.</p></div>
+          <div class="help-card"><h3>Połącz istniejącą osobę</h3><p>W trybie dodawania można wybrać osobę już istniejącą w drzewie i połączyć ją relacją zamiast tworzyć duplikat.</p></div>
+        </div>
+        <div class="help-demo-bar">
+          <button class="help-action" type="button" onclick="startHelpAddPractice('parent')">Ćwicz: dodaj rodzica</button>
+          <button class="help-action" type="button" onclick="startHelpAddPractice('child')">Ćwicz: dodaj dziecko</button>
+          <button class="help-action" type="button" onclick="startHelpAddPractice('spouse')">Ćwicz: dodaj małżonka</button>
+        </div>
+      </article>
+
+      <article class="help-step" data-help-step="4">
+        <div class="help-kicker">Avatary</div>
+        <h2>Możesz używać gotowych buziek z folderu projektu.</h2>
+        <p class="help-lead">Jeśli osoba nie ma własnego portretu, aplikacja pokazuje lokalny avatar według wieku i płci. Możesz też wpisać ścieżkę do wybranej buźki w polu „Zdjęcie portretowe”.</p>
+        <div class="avatar-lab">
+          <div class="help-card">
+            <img id="help-avatar-preview" src="adult_f.png" alt="Podgląd avatara">
+          </div>
+          <div>
+            <div class="avatar-choice-grid">
+              <button class="avatar-choice active" type="button" onclick="selectHelpAvatar(this,'adult_f.png')"><img src="adult_f.png" alt="">Dorosła kobieta</button>
+              <button class="avatar-choice" type="button" onclick="selectHelpAvatar(this,'adult_m.png')"><img src="adult_m.png" alt="">Dorosły mężczyzna</button>
+              <button class="avatar-choice" type="button" onclick="selectHelpAvatar(this,'child_f.png')"><img src="child_f.png" alt="">Dziewczynka</button>
+              <button class="avatar-choice" type="button" onclick="selectHelpAvatar(this,'child_m.png')"><img src="child_m.png" alt="">Chłopiec</button>
+              <button class="avatar-choice" type="button" onclick="selectHelpAvatar(this,'elder_f.png')"><img src="elder_f.png" alt="">Seniorka</button>
+              <button class="avatar-choice" type="button" onclick="selectHelpAvatar(this,'elder_m.png')"><img src="elder_m.png" alt="">Senior</button>
+            </div>
+            <div class="help-card" style="margin-top:12px">
+              <h3>Jak wpisać avatar</h3>
+              <p>W formularzu osoby, w polu „Zdjęcie portretowe”, wpisz nazwę pliku, np. <strong id="help-avatar-path">adult_f.png</strong>. Portrety osób z folderu <strong>p</strong> wpisuj jako np. <strong>p/ola.png</strong>.</p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="help-step" data-help-step="5">
+        <div class="help-kicker">Zdjęcia i foldery</div>
+        <h2>Portret działa najlepiej, gdy plik leży w projekcie, a w polu jest ścieżka względna.</h2>
+        <p class="help-lead">Aplikacja nie przenosi zdjęć sama do folderu. Najpierw wkładasz JPG/PNG do odpowiedniego katalogu, potem wpisujesz albo wybierasz ścieżkę w formularzu osoby.</p>
+        <div class="help-grid">
+          <div class="help-card">
+            <h3>Gdzie wkładać zdjęcia</h3>
+            <ul>
+              <li><strong>p/</strong> - portrety konkretnych osób, np. <strong>p/ola.jpg</strong>.</li>
+              <li><strong>folder główny</strong> - szybkie avatary, np. <strong>adult_f.png</strong>.</li>
+              <li><strong>assets/</strong> - grafiki interfejsu, tła i ozdobniki.</li>
+            </ul>
+          </div>
+          <div class="help-card">
+            <h3>Jak wybrać portret</h3>
+            <ol>
+              <li>Skopiuj zdjęcie do folderu <strong>p</strong> w projekcie.</li>
+              <li>Otwórz osobę i kliknij ołówek.</li>
+              <li>W polu „Zdjęcie portretowe” wpisz <strong>p/nazwa-pliku.jpg</strong>.</li>
+              <li>Zapisz i sprawdź miniaturę na karcie oraz w panelu.</li>
+            </ol>
+          </div>
+          <div class="help-card">
+            <h3>Selekcja pliku</h3>
+            <p>Przycisk wyboru zdjęcia pomaga przepisać nazwę pliku do pola. Jeśli zdjęcie ma zostać na stałe, musi nadal fizycznie leżeć w folderze projektu.</p>
+          </div>
+          <div class="help-card">
+            <h3>Typowe błędy</h3>
+            <p>Nie używaj ścieżek z pulpitu typu <strong>C:\...</strong>. W drzewie zapisuj krótkie ścieżki względne: <strong>p/jan.jpg</strong>, <strong>p/maria.png</strong> albo <strong>adult_m.png</strong>.</p>
+          </div>
+        </div>
+        <div class="help-demo-bar">
+          <button class="help-action" type="button" onclick="startHelpEditPractice()">Otwórz formularz i przećwicz zdjęcie</button>
+          <button class="help-action secondary" type="button" onclick="selectHelpAvatar(document.querySelector('.avatar-choice'), 'p/ola.png'); showHelpStep(4);">Pokaż przykład z p/ola.png</button>
+        </div>
+      </article>
+
+      <article class="help-step" data-help-step="6">
+        <div class="help-kicker">Praktyka</div>
+        <h2>Zbuduj małe drzewo od zera w osobnym drzewie do nauki.</h2>
+        <p class="help-lead">Po kliknięciu startu aplikacja przełączy się na osobną piaskownicę. Prawdziwe drzewo zostaje nietknięte, a ćwiczenia zapisują się w oddzielnym miejscu przeglądarki.</p>
+        <div class="help-grid">
+          <div class="help-card">
+            <h3>1. Osoba startowa</h3>
+            <p>W drzewie nauki edytuj osobę startową i ustaw portret, np. <strong>p/ola.png</strong>. Zapisz.</p>
+          </div>
+          <div class="help-card">
+            <h3>2. Rodzice</h3>
+            <p>Kliknij „+ Rodzic” dwa razy. Dla pierwszej osoby wpisz np. <strong>p/jan.png</strong>, dla drugiej <strong>p/maria.png</strong>.</p>
+          </div>
+          <div class="help-card">
+            <h3>3. Małżonek i dziecko</h3>
+            <p>Dodaj małżonka, potem dziecko. Portrety możesz wziąć z <strong>p/piotr.png</strong>, <strong>p/maja.png</strong> albo z avatarów <strong>adult_m.png</strong> i <strong>child_f.png</strong>.</p>
+          </div>
+          <div class="help-card">
+            <h3>4. Kontrola</h3>
+            <p>Wyśrodkuj drzewo, sprawdź czy zdjęcia są widoczne, a potem użyj „↓ JS”, żeby zapisać dane poza przeglądarką.</p>
+          </div>
+        </div>
+        <div class="help-checklist">
+          <button class="help-check" type="button" onclick="toggleHelpCheck(this)"><span>✓</span><span>Ustaw portret osoby startowej z folderu p.</span></button>
+          <button class="help-check" type="button" onclick="toggleHelpCheck(this)"><span>✓</span><span>Dodaj dwóch rodziców i wpisz im portrety.</span></button>
+          <button class="help-check" type="button" onclick="toggleHelpCheck(this)"><span>✓</span><span>Dodaj małżonka oraz dziecko.</span></button>
+          <button class="help-check" type="button" onclick="toggleHelpCheck(this)"><span>✓</span><span>Wyeksportuj dane przyciskiem ↓ JS.</span></button>
+        </div>
+        <div class="help-demo-bar">
+          <button class="help-action" type="button" onclick="startHelpPracticeTree()">Utwórz osobne drzewo do nauki</button>
+          <button class="help-action secondary" type="button" onclick="startHelpAddPractice('parent')">Od razu dodaj rodzica</button>
+        </div>
+      </article>
+
+      <article class="help-step" data-help-step="7">
+        <div class="help-kicker">Zapis</div>
+        <h2>Po edycji pamiętaj o eksporcie.</h2>
+        <p class="help-lead">Przycisk „Zapisz” utrwala zmiany w tej przeglądarce. Przycisk „↓ JS” pobiera plik danych, który możesz zachować razem z projektem. PDF i druk służą do udostępnienia widoku drzewa.</p>
+        <div class="help-grid">
+          <div class="help-card"><h3>Zapisz</h3><p>Zapisuje formularz osoby i przebudowuje drzewo.</p></div>
+          <div class="help-card"><h3>↓ JS</h3><p>Eksportuje aktualne dane osób do pliku JavaScript.</p></div>
+          <div class="help-card"><h3>PDF</h3><p>Tworzy obraz drzewa do udostępnienia lub archiwizacji.</p></div>
+          <div class="help-card"><h3>Reset</h3><p>Przywraca dane startowe z pliku projektu. Używaj ostrożnie.</p></div>
+        </div>
+      </article>
+
+      <div class="help-footer">
+        <button class="help-action secondary" type="button" onclick="moveHelpStep(-1)">Wstecz</button>
+        <button class="help-action" type="button" onclick="moveHelpStep(1)">Dalej</button>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- BOOK COVER (shown only on first visit) ──────────────────────────────── -->
+<div id="book-cover" class="hidden" aria-hidden="true">
+  <div id="cover-page">
+    <div class="cover-dust" aria-hidden="true"></div>
+    <div class="cover-glow-ring" aria-hidden="true"></div>
+    <div class="cover-bookmark" aria-hidden="true"></div>
+    <div class="cover-seal" aria-hidden="true">Eliadora</div>
+    <div class="cover-spine" aria-hidden="true"><span>Liber Genealogiae</span></div>
+    <div class="cover-page-edge" aria-hidden="true"></div>
+    <div class="cover-corner cover-corner-tl" aria-hidden="true"></div>
+    <div class="cover-corner cover-corner-tr" aria-hidden="true"></div>
+    <div class="cover-corner cover-corner-bl" aria-hidden="true"></div>
+    <div class="cover-corner cover-corner-br" aria-hidden="true"></div>
+    <div class="cover-clasp cover-clasp-top" aria-hidden="true"></div>
+    <div class="cover-clasp cover-clasp-bottom" aria-hidden="true"></div>
+    <div class="cover-side cover-side-left" aria-hidden="true">
+      <div class="cover-medallion"></div>
+      <div class="cover-medallion"></div>
+      <div class="cover-medallion"></div>
+    </div>
+    <div class="cover-side cover-side-right" aria-hidden="true">
+      <div class="cover-medallion"></div>
+      <div class="cover-medallion"></div>
+      <div class="cover-medallion"></div>
+    </div>
+    <div class="cover-rune-strip" aria-hidden="true">
+      <span>ANNI</span><span>SANGUIS</span><span>DOMUS</span><span>MEMORIA</span><span>RADICES</span>
+    </div>
+    <div id="cover-centerpiece">
+      <div id="cover-title">Eliadora</div>
+      <div id="cover-family" data-family>&nbsp;</div>
+
+    <!-- White Tree of Gondor — heraldic style, inline SVG -->
+    <svg id="cover-tree-svg" viewBox="0 0 400 440" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <radialGradient id="cover-tree-glow" cx="50%" cy="55%" r="60%">
+          <stop offset="0%" stop-color="#fff4d0" stop-opacity="0.8"/>
+          <stop offset="100%" stop-color="#fff4d0" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="cover-tree-fill" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#fff8e0"/>
+          <stop offset="100%" stop-color="#e8d49a"/>
+        </linearGradient>
+        <radialGradient id="cover-leaf-fill" cx="35%" cy="30%" r="80%">
+          <stop offset="0%" stop-color="#fff8e0"/>
+          <stop offset="100%" stop-color="#dcc488"/>
+        </radialGradient>
+      </defs>
+
+      <!-- Faint glow halo behind the tree -->
+      <ellipse cx="200" cy="240" rx="180" ry="210" fill="url(#cover-tree-glow)"/>
+
+      <!-- Seven stars in an arc above the crown (Gondor's seven stars) -->
+      <g fill="#f4d878" stroke="#b88a3a" stroke-width="0.5">
+        <g transform="translate(110,50)"><polygon points="0,-7 1.7,-1.7 7,-1.7 2.5,1.7 4.3,7 0,3.5 -4.3,7 -2.5,1.7 -7,-1.7 -1.7,-1.7"/></g>
+        <g transform="translate(145,34)"><polygon points="0,-7 1.7,-1.7 7,-1.7 2.5,1.7 4.3,7 0,3.5 -4.3,7 -2.5,1.7 -7,-1.7 -1.7,-1.7"/></g>
+        <g transform="translate(180,24)"><polygon points="0,-8 2,-2 8,-2 3,2 5,8 0,4 -5,8 -3,2 -8,-2 -2,-2"/></g>
+        <g transform="translate(200,18)"><polygon points="0,-10 2.5,-2.5 10,-2.5 3.5,2.5 6.5,10 0,5 -6.5,10 -3.5,2.5 -10,-2.5 -2.5,-2.5"/></g>
+        <g transform="translate(220,24)"><polygon points="0,-8 2,-2 8,-2 3,2 5,8 0,4 -5,8 -3,2 -8,-2 -2,-2"/></g>
+        <g transform="translate(255,34)"><polygon points="0,-7 1.7,-1.7 7,-1.7 2.5,1.7 4.3,7 0,3.5 -4.3,7 -2.5,1.7 -7,-1.7 -1.7,-1.7"/></g>
+        <g transform="translate(290,50)"><polygon points="0,-7 1.7,-1.7 7,-1.7 2.5,1.7 4.3,7 0,3.5 -4.3,7 -2.5,1.7 -7,-1.7 -1.7,-1.7"/></g>
+      </g>
+
+      <!-- Royal crown of Gondor -->
+      <g stroke="#b88a3a" stroke-width="0.9" stroke-linejoin="round">
+        <!-- Crown band -->
+        <path d="M168 80 L232 80 L228 92 L172 92 Z" fill="#e8c474"/>
+        <!-- Crown points (5 spires) -->
+        <path d="M168 80 L172 60 L180 80 Z" fill="#e8c474"/>
+        <path d="M184 80 L188 64 L196 80 Z" fill="#e8c474"/>
+        <path d="M200 80 L195 56 L205 56 L200 80 Z" fill="#f0d480"/>
+        <path d="M204 80 L208 64 L216 80 Z" fill="#e8c474"/>
+        <path d="M220 80 L228 60 L232 80 Z" fill="#e8c474"/>
+        <!-- Side wings on central spire (smaller, decorative) -->
+        <path d="M193 60 L188 54 L191 62 Z" fill="#e8c474" opacity="0.85"/>
+        <path d="M207 60 L212 54 L209 62 Z" fill="#e8c474" opacity="0.85"/>
+        <!-- Jewels -->
+        <circle cx="200" cy="51" r="2.5" fill="#fff4d0"/>
+        <circle cx="180" cy="86" r="1.5" fill="#fff4d0"/>
+        <circle cx="220" cy="86" r="1.5" fill="#fff4d0"/>
+        <circle cx="200" cy="86" r="1.8" fill="#fff4d0"/>
+      </g>
+
+      <!-- White Tree of Gondor — trunk and branches -->
+      <g stroke="#a87830" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round" fill="url(#cover-tree-fill)">
+        <!-- Main trunk (slimmer, more elegant, with roots at base) -->
+        <path d="
+          M195 410
+          C 191 388, 188 360, 192 330
+          C 190 305, 193 280, 196 252
+          C 197 232, 198 215, 199 198
+          C 199 180, 200 165, 200 100
+          C 200 165, 201 180, 201 198
+          C 202 215, 203 232, 204 252
+          C 207 280, 210 305, 208 330
+          C 212 360, 209 388, 205 410
+          Z"/>
+
+        <!-- Roots spreading at base -->
+        <path d="M195 408 C 184 412, 168 414, 148 410 C 162 416, 178 416, 195 414 Z"/>
+        <path d="M205 408 C 216 412, 232 414, 252 410 C 238 416, 222 416, 205 414 Z"/>
+        <path d="M198 408 C 190 416, 178 420, 162 422 C 178 422, 192 420, 200 416 Z"/>
+        <path d="M202 408 C 210 416, 222 420, 238 422 C 222 422, 208 420, 200 416 Z"/>
+
+        <!-- Lower branches going outward -->
+        <path d="
+          M193 332
+          C 174 322, 152 308, 130 290
+          C 118 280, 106 266, 96 252
+          C 106 268, 120 282, 134 296
+          C 156 314, 176 326, 192 334
+          Z"/>
+        <path d="
+          M207 332
+          C 226 322, 248 308, 270 290
+          C 282 280, 294 266, 304 252
+          C 294 268, 280 282, 266 296
+          C 244 314, 224 326, 208 334
+          Z"/>
+
+        <!-- Mid-low branches -->
+        <path d="
+          M194 285
+          C 172 270, 148 252, 124 232
+          C 110 220, 96 204, 84 188
+          C 96 206, 108 222, 122 238
+          C 146 260, 170 278, 192 288
+          Z"/>
+        <path d="
+          M206 285
+          C 228 270, 252 252, 276 232
+          C 290 220, 304 204, 316 188
+          C 304 206, 292 222, 278 238
+          C 254 260, 230 278, 208 288
+          Z"/>
+
+        <!-- Mid branches -->
+        <path d="
+          M195 240
+          C 174 220, 152 196, 134 168
+          C 122 150, 114 132, 110 116
+          C 116 132, 126 150, 138 168
+          C 156 192, 174 214, 192 234
+          C 193 236, 194 238, 195 240
+          Z"/>
+        <path d="
+          M205 240
+          C 226 220, 248 196, 266 168
+          C 278 150, 286 132, 290 116
+          C 284 132, 274 150, 262 168
+          C 244 192, 226 214, 208 234
+          C 207 236, 206 238, 205 240
+          Z"/>
+
+        <!-- Upper branches -->
+        <path d="
+          M197 200
+          C 184 180, 170 156, 158 130
+          C 152 116, 148 102, 148 92
+          C 150 104, 156 118, 164 134
+          C 176 156, 188 178, 196 198
+          Z"/>
+        <path d="
+          M203 200
+          C 216 180, 230 156, 242 130
+          C 248 116, 252 102, 252 92
+          C 250 104, 244 118, 236 134
+          C 224 156, 212 178, 204 198
+          Z"/>
+
+        <!-- Top branches (reaching skyward, slimmer) -->
+        <path d="
+          M198 165
+          C 192 145, 184 122, 178 105
+          C 174 96, 174 90, 178 86
+          C 176 92, 180 102, 186 116
+          C 192 132, 196 150, 198 164
+          Z"/>
+        <path d="
+          M202 165
+          C 208 145, 216 122, 222 105
+          C 226 96, 226 90, 222 86
+          C 224 92, 220 102, 214 116
+          C 208 132, 204 150, 202 164
+          Z"/>
+      </g>
+
+      <!-- LEAVES / BLOSSOMS — many small white "petals" giving the iconic Gondor look -->
+      <g fill="url(#cover-leaf-fill)" stroke="#a87830" stroke-width="0.6">
+        <!-- Tips of branches (extra prominent blossoms) -->
+        <ellipse cx="96" cy="252" rx="7" ry="11" transform="rotate(-30 96 252)"/>
+        <ellipse cx="84" cy="188" rx="7" ry="11" transform="rotate(-22 84 188)"/>
+        <ellipse cx="110" cy="116" rx="7" ry="11" transform="rotate(-12 110 116)"/>
+        <ellipse cx="148" cy="92" rx="6" ry="10" transform="rotate(-8 148 92)"/>
+        <ellipse cx="252" cy="92" rx="6" ry="10" transform="rotate(8 252 92)"/>
+        <ellipse cx="290" cy="116" rx="7" ry="11" transform="rotate(12 290 116)"/>
+        <ellipse cx="316" cy="188" rx="7" ry="11" transform="rotate(22 316 188)"/>
+        <ellipse cx="304" cy="252" rx="7" ry="11" transform="rotate(30 304 252)"/>
+
+        <!-- Mid-branch clusters -->
+        <ellipse cx="120" cy="232" rx="4.5" ry="7" transform="rotate(-28 120 232)"/>
+        <ellipse cx="108" cy="266" rx="4" ry="6" transform="rotate(-32 108 266)"/>
+        <ellipse cx="140" cy="200" rx="4" ry="6" transform="rotate(-20 140 200)"/>
+        <ellipse cx="124" cy="160" rx="4.5" ry="7" transform="rotate(-18 124 160)"/>
+        <ellipse cx="158" cy="130" rx="4" ry="6" transform="rotate(-14 158 130)"/>
+        <ellipse cx="242" cy="130" rx="4" ry="6" transform="rotate(14 242 130)"/>
+        <ellipse cx="276" cy="160" rx="4.5" ry="7" transform="rotate(18 276 160)"/>
+        <ellipse cx="260" cy="200" rx="4" ry="6" transform="rotate(20 260 200)"/>
+        <ellipse cx="280" cy="232" rx="4.5" ry="7" transform="rotate(28 280 232)"/>
+        <ellipse cx="292" cy="266" rx="4" ry="6" transform="rotate(32 292 266)"/>
+
+        <!-- Inner leaves along branches -->
+        <ellipse cx="160" cy="296" rx="3" ry="5" transform="rotate(-40 160 296)"/>
+        <ellipse cx="176" cy="270" rx="3" ry="5" transform="rotate(-35 176 270)"/>
+        <ellipse cx="148" cy="270" rx="3" ry="5" transform="rotate(-30 148 270)"/>
+        <ellipse cx="166" cy="240" rx="3" ry="5" transform="rotate(-25 166 240)"/>
+        <ellipse cx="172" cy="200" rx="3" ry="5" transform="rotate(-20 172 200)"/>
+        <ellipse cx="184" cy="170" rx="2.8" ry="4.5" transform="rotate(-15 184 170)"/>
+        <ellipse cx="190" cy="140" rx="2.5" ry="4"/>
+        <ellipse cx="210" cy="140" rx="2.5" ry="4"/>
+        <ellipse cx="216" cy="170" rx="2.8" ry="4.5" transform="rotate(15 216 170)"/>
+        <ellipse cx="228" cy="200" rx="3" ry="5" transform="rotate(20 228 200)"/>
+        <ellipse cx="234" cy="240" rx="3" ry="5" transform="rotate(25 234 240)"/>
+        <ellipse cx="252" cy="270" rx="3" ry="5" transform="rotate(30 252 270)"/>
+        <ellipse cx="224" cy="270" rx="3" ry="5" transform="rotate(35 224 270)"/>
+        <ellipse cx="240" cy="296" rx="3" ry="5" transform="rotate(40 240 296)"/>
+      </g>
+
+      <!-- Decorative ground line -->
+      <path d="M70 422 Q 200 434 330 422" stroke="#b88a3a" stroke-width="1" fill="none" opacity="0.7"/>
+      <path d="M90 428 Q 200 436 310 428" stroke="#b88a3a" stroke-width="0.6" fill="none" opacity="0.5"/>
+    </svg>
+
+    <div id="cover-subtitle" data-cover-subtitle>Drzewo genealogiczne rodu</div>
+    <div id="cover-actions">
+      <button id="cover-open-btn" onclick="openBookCover()" data-cover-open>Otwórz księgę</button>
+      <button id="cover-help-btn" onclick="openHelpTutorial()" type="button">HELP</button>
+    </div>
+    </div>
+  </div>
+</div>
+
+<script src="vendor/d3.min.js"></script>
+<script src="vendor/jspdf.umd.min.js"></script>
+<script>
+'use strict';
+
+// ─── ESCAPE HELPERS ───────────────────────────────────────────────────────────
+// esc() — escapes text for safe insertion in HTML text content and attributes
+//   (use in ${esc(value)} inside template literals).
+// escAttr() — escapes value for safe insertion inside a JS string literal that
+//   itself sits inside an HTML attribute (e.g. onclick="foo('${escAttr(id)}')").
+//   Without this, a person ID like  ');alert(1);//  would break out of the
+//   string and execute arbitrary JS. Critical for IDs read from imported data.
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function escAttr(s) {
+  // For values embedded in onclick="foo('${escAttr(val)}')":
+  // 1. Apply JS string escapes (\\ first, then \') so the value can't break
+  //    out of the surrounding single-quoted JS literal.
+  // 2. HTML-encode & (because attribute value will be HTML-decoded by browser
+  //    before being passed to JS) and " (the attribute delimiter).
+  // We do NOT HTML-encode the apostrophe — it would become a literal ' after
+  // HTML decode and break out of the JS string.
+  // We do NOT HTML-encode the backslash — &#92; would HTML-decode to \, which
+  // is fine, but plain \ inside "..." attribute is also fine.
+  // Newlines are JS-escaped to keep the function call on one line.
+  return String(s)
+    .replace(/\\/g, '\\\\')   // step 1a: escape backslash for JS
+    .replace(/'/g,  '\\\'')   // step 1b: escape apostrophe for JS
+    .replace(/\r?\n/g, '\\n') // step 1c: escape newlines for JS
+    .replace(/&/g,  '&amp;')  // step 2a: HTML-encode &
+    .replace(/"/g,  '&quot;') // step 2b: HTML-encode attribute delimiter
+    .replace(/</g,  '&lt;')   // step 2c: defence in depth — no HTML injection
+    .replace(/>/g,  '&gt;');
+}
+
+// ─── TRANSLATIONS ─────────────────────────────────────────────────────────────
+const I18N = {
+  pl: { subtitle:'drzewo genealogiczne', born:'ur.', died:'zm.',
+        grandparents:'Dziadkowie', parents:'Rodzice', children:'Dzieci',
+        grandchildren:'Wnuki', family:'Rodzina',
+        age:'wiek', lived:'przeżył/a', years:'lat',
+        birthPlace:'Miejsce ur.', deathPlace:'Miejsce zm.',
+        biography:'Biografia',
+        bioPlaceholder:'Zawód · Miejsce pochówku · Zainteresowania · Anegdoty rodzinne...',
+        // Editor
+        export:'Eksportuj', edit:'Edytuj', cancel:'Anuluj',
+        saveChanges:'Zapisz', addToTree:'Dodaj do drzewa', newPerson:'Nowa osoba',
+        editing:'Edytujesz',
+        nameSection:'Imię i nazwisko', genderSection:'Płeć',
+        datesSection:'Daty i miejsca', nationalitySection:'Narodowość',
+        mediaSection:'Media (pliki)', addPerson:'Dodaj osobę',
+        addParent:'+ Rodzic', addChild:'+ Dziecko', addSpouse:'+ Małżonek',
+        firstName:'Imię', lastName:'Nazwisko', onCard:'na karcie',
+        fullNameField:'Pełne imię i nazwisko', fullNamePlaceholder:'Maria Aleksandra Kowalska',
+        male:'Mężczyzna', female:'Kobieta',
+        leaveEmpty:'(puste = żyje)',
+        imageField:'Zdjęcie portretowe', gifField:'Animacja (GIF)', videoField:'Portret wideo (MP4)',
+        addingAsParent:'Rodzic osoby:', addingAsChild:'Dziecko osoby:',
+        addingAsSpouse:'Małżonek osoby:',
+        errFirstName:'Podaj imię.', errLastName:'Podaj nazwisko.',
+        errGender:'Wybierz płeć.',
+        localStorageNote:'Zmiany zapisane w przeglądarce. Kliknij Eksportuj, aby zapisać plik.',
+        coverOpen:'Otwórz księgę', coverSubtitle:'Drzewo genealogiczne rodu',
+        exportPdf:'PDF', printTree:'Drukuj', showCover:'Okładka' },
+  en: { subtitle:'family tree', born:'b.', died:'d.',
+        grandparents:'Grandparents', parents:'Parents', children:'Children',
+        grandchildren:'Grandchildren', family:'Family',
+        age:'age', lived:'lived', years:'years',
+        birthPlace:'Birthplace', deathPlace:'Place of death',
+        biography:'Biography',
+        bioPlaceholder:'Occupation · Burial place · Interests · Family anecdotes...',
+        export:'Export', edit:'Edit', cancel:'Cancel',
+        saveChanges:'Save', addToTree:'Add to tree', newPerson:'New person',
+        editing:'Editing',
+        nameSection:'Name', genderSection:'Gender',
+        datesSection:'Dates & places', nationalitySection:'Nationality',
+        mediaSection:'Media (files)', addPerson:'Add person',
+        addParent:'+ Parent', addChild:'+ Child', addSpouse:'+ Spouse',
+        firstName:'First name', lastName:'Last name', onCard:'on card',
+        fullNameField:'Full name', fullNamePlaceholder:'Maria Aleksandra Kowalska',
+        male:'Male', female:'Female',
+        leaveEmpty:'(empty = living)',
+        imageField:'Portrait image', gifField:'Animated portrait (GIF)', videoField:'Video portrait (MP4)',
+        addingAsParent:'Parent of:', addingAsChild:'Child of:',
+        addingAsSpouse:'Spouse of:',
+        errFirstName:'Please enter a first name.', errLastName:'Please enter a last name.',
+        errGender:'Please select a gender.',
+        localStorageNote:'Changes saved in browser. Click Export to save the data file.',
+        coverOpen:'Open the book', coverSubtitle:'Family tree of the house of',
+        exportPdf:'PDF', printTree:'Print', showCover:'Cover' },
+  es: { subtitle:'árbol genealógico', born:'n.', died:'f.',
+        grandparents:'Abuelos', parents:'Padres', children:'Hijos',
+        grandchildren:'Nietos', family:'Familia',
+        age:'edad', lived:'vivió', years:'años',
+        birthPlace:'Lugar de nacimiento', deathPlace:'Lugar de fallecimiento',
+        biography:'Biografía',
+        bioPlaceholder:'Ocupación · Lugar de entierro · Intereses · Anécdotas familiares...',
+        export:'Exportar', edit:'Editar', cancel:'Cancelar',
+        saveChanges:'Guardar', addToTree:'Añadir al árbol', newPerson:'Nueva persona',
+        editing:'Editando',
+        nameSection:'Nombre', genderSection:'Género',
+        datesSection:'Fechas y lugares', nationalitySection:'Nacionalidad',
+        mediaSection:'Medios (archivos)', addPerson:'Añadir persona',
+        addParent:'+ Padre/Madre', addChild:'+ Hijo/a', addSpouse:'+ Cónyuge',
+        firstName:'Nombre', lastName:'Apellido', onCard:'en tarjeta',
+        fullNameField:'Nombre completo', fullNamePlaceholder:'María Aleksandra Kowalska',
+        male:'Hombre', female:'Mujer',
+        leaveEmpty:'(vacío = vivo/a)',
+        imageField:'Foto de perfil', gifField:'Retrato animado (GIF)', videoField:'Retrato en video (MP4)',
+        addingAsParent:'Padre/madre de:', addingAsChild:'Hijo/a de:',
+        addingAsSpouse:'Cónyuge de:',
+        errFirstName:'Ingrese un nombre.', errLastName:'Ingrese un apellido.',
+        errGender:'Seleccione el género.',
+        localStorageNote:'Cambios guardados en el navegador. Haga clic en Exportar para guardar el archivo.',
+        coverOpen:'Abrir el libro', coverSubtitle:'Árbol genealógico de la familia',
+        exportPdf:'PDF', printTree:'Imprimir', showCover:'Portada' },
+  fr: { subtitle:'arbre généalogique', born:'né', died:'dé',
+        grandparents:'Grands-parents', parents:'Parents', children:'Enfants',
+        grandchildren:'Petits-enfants', family:'Famille',
+        age:'âge', lived:'vécu', years:'ans',
+        birthPlace:'Lieu de naissance', deathPlace:'Lieu de décès',
+        biography:'Biographie',
+        bioPlaceholder:'Profession · Lieu d\'inhumation · Intérêts · Anecdotes familiales...',
+        export:'Exporter', edit:'Modifier', cancel:'Annuler',
+        saveChanges:'Enregistrer', addToTree:'Ajouter à l\'arbre', newPerson:'Nouvelle personne',
+        editing:'Modification de',
+        nameSection:'Prénom et nom', genderSection:'Genre',
+        datesSection:'Dates et lieux', nationalitySection:'Nationalité',
+        mediaSection:'Médias (fichiers)', addPerson:'Ajouter une personne',
+        addParent:'+ Parent', addChild:'+ Enfant', addSpouse:'+ Conjoint(e)',
+        firstName:'Prénom', lastName:'Nom', onCard:'sur la carte',
+        fullNameField:'Nom complet', fullNamePlaceholder:'Marie Aleksandra Kowalska',
+        male:'Homme', female:'Femme',
+        leaveEmpty:'(vide = vivant/e)',
+        imageField:'Photo de profil', gifField:'Portrait animé (GIF)', videoField:'Portrait vidéo (MP4)',
+        addingAsParent:'Parent de :', addingAsChild:'Enfant de :',
+        addingAsSpouse:'Conjoint(e) de :',
+        errFirstName:'Veuillez saisir un prénom.', errLastName:'Veuillez saisir un nom.',
+        errGender:'Veuillez choisir un genre.',
+        localStorageNote:'Modifications enregistrées dans le navigateur. Cliquez sur Exporter pour sauvegarder le fichier.',
+        coverOpen:'Ouvrir le livre', coverSubtitle:'Arbre généalogique de la famille',
+        exportPdf:'PDF', printTree:'Imprimer', showCover:'Couverture' },
+};
+let lang = 'pl';
+const t = k => (I18N[lang] || I18N.pl)[k] || k;
+
+const THEME_KEY = 'eliadora_theme';
+const THEME_CONFIG = {
+  nature:   { paper:'assets/parchment-classic.png', svgBg:'#f0ddb6', grain:'#9f7b42', speck:'#7f5a26', accent:'#b18230' },
+  deco20:   { paper:'assets/parchment-papyrus.png', svgBg:'#eed7a8', grain:'#b5842e', speck:'#9a6c20', accent:'#c79a36' },
+  interwar: { paper:'assets/parchment-vellum.png', svgBg:'#ead8b6', grain:'#847058', speck:'#5e4a35', accent:'#8a6a3b' },
+  prl:      { paper:'assets/parchment-smoke.png', svgBg:'#d4c4a4', grain:'#6d5841', speck:'#54341f', accent:'#9a6028' },
+};
+let activeTheme = 'nature';
+
+function setTheme(theme) {
+  if (!THEME_CONFIG[theme]) theme = 'nature';
+  const config = THEME_CONFIG[theme];
+  activeTheme = theme;
+  document.body.classList.remove('theme-nature','theme-deco20','theme-interwar','theme-prl');
+  document.body.classList.add('theme-' + theme);
+  document.documentElement.style.setProperty('--paper-texture', `url('${config.paper}')`);
+  document.documentElement.style.setProperty('--tree-paper-color', config.svgBg);
+  document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.theme === theme));
+  try { localStorage.setItem(THEME_KEY, theme); } catch(e) {}
+  // bgR / bgTint may not exist yet during early init (they're created when the
+  // SVG layers are set up, later in the script). updateGrain() reads activeTheme
+  // and applies the colour, so on first call we just skip and let init do it.
+  // typeof check avoids ReferenceError on let-bindings (window.bgR isn't enough).
+  try {
+    if (typeof bgR !== 'undefined' && bgR) {
+      bgR.attr('fill', config.svgBg).attr('opacity', 0.10);
+      if (typeof bgTint !== 'undefined' && bgTint) bgTint.attr('fill', config.svgBg).attr('opacity', 0);
+    }
+  } catch(e) { /* bgR not initialised yet */ }
+  if (currentFocusId) {
+    try { updateGrain(calculateLayout(buildHourglass(currentFocusId))); } catch(e) {}
+  }
+}
+
+function initThemeSwitcher() {
+  let saved = 'nature';
+  try { saved = localStorage.getItem(THEME_KEY) || 'nature'; } catch(e) {}
+  setTheme(saved);
+}
+
+const SENIOR_KEY = 'eliadora_senior_mode';
+const SENIOR_SCALE_KEY = 'eliadora_senior_scale';
+const MUSIC_VOLUME_KEY = 'eliadora_music_volume';
+let seniorMode = false;
+let seniorScale = 1.22;
+
+function setAppChromeMetrics() {
+  const header = document.getElementById('app-header');
+  if (!header) return;
+  const h = Math.ceil(header.getBoundingClientRect().height || 58);
+  document.documentElement.style.setProperty('--header-h', h + 'px');
+}
+
+function applySeniorMode(enabled) {
+  seniorMode = !!enabled;
+  document.body.classList.toggle('senior-mode', seniorMode);
+  const btn = document.getElementById('senior-toggle');
+  if (btn) {
+    btn.classList.toggle('active', seniorMode);
+    btn.setAttribute('aria-pressed', seniorMode ? 'true' : 'false');
+  }
+  try { localStorage.setItem(SENIOR_KEY, seniorMode ? '1' : '0'); } catch(e) {}
+  setTimeout(() => {
+    setAppChromeMetrics();
+    if (currentFocusId && !transitioning) {
+      const fid = currentFocusId;
+      currentFocusId = null;
+      transitionTo(fid, false);
+      setTimeout(centerCurrent, 90);
+    }
+  }, 40);
+}
+
+function toggleSeniorMode() {
+  applySeniorMode(!seniorMode);
+}
+
+function setSeniorScale(value) {
+  const pct = Math.max(110, Math.min(170, parseInt(value, 10) || 122));
+  seniorScale = pct / 100;
+  document.documentElement.style.setProperty('--senior-scale', seniorScale.toFixed(2));
+  const slider = document.getElementById('senior-scale');
+  const label = document.getElementById('senior-scale-label');
+  if (slider) slider.value = pct;
+  if (label) label.textContent = pct + '%';
+  try { localStorage.setItem(SENIOR_SCALE_KEY, String(pct)); } catch(e) {}
+  setAppChromeMetrics();
+  if (seniorMode && currentFocusId && !transitioning) {
+    const fid = currentFocusId;
+    currentFocusId = null;
+    transitionTo(fid, false);
+    setTimeout(centerCurrent, 80);
+  }
+}
+
+function initSeniorMode() {
+  let saved = false;
+  let savedScale = 122;
+  try { saved = localStorage.getItem(SENIOR_KEY) === '1'; } catch(e) {}
+  try { savedScale = parseInt(localStorage.getItem(SENIOR_SCALE_KEY) || '122', 10); } catch(e) {}
+  setSeniorScale(savedScale);
+  applySeniorMode(saved);
+}
+
+function setBackgroundVolume(value) {
+  const audio = document.getElementById('background-music');
+  const slider = document.getElementById('music-volume');
+  const label = document.getElementById('music-label');
+  const pct = Math.max(0, Math.min(100, parseInt(value, 10) || 0));
+  if (audio) audio.volume = pct / 100;
+  if (slider) slider.value = pct;
+  if (label) label.textContent = pct + '%';
+  try { localStorage.setItem(MUSIC_VOLUME_KEY, String(pct)); } catch(e) {}
+}
+
+async function toggleBackgroundMusic() {
+  const audio = document.getElementById('background-music');
+  const btn = document.getElementById('music-toggle');
+  if (!audio) return;
+  if (audio.paused) {
+    try {
+      await audio.play();
+      if (btn) { btn.classList.add('active'); btn.textContent = 'II'; btn.setAttribute('aria-pressed','true'); }
+    } catch(e) {
+      if (btn) btn.textContent = '♪';
+    }
+  } else {
+    audio.pause();
+    if (btn) { btn.classList.remove('active'); btn.textContent = '♪'; btn.setAttribute('aria-pressed','false'); }
+  }
+}
+
+function initBackgroundMusic() {
+  let volume = 35;
+  try {
+    const saved = localStorage.getItem(MUSIC_VOLUME_KEY);
+    if (saved !== null) volume = parseInt(saved, 10);
+  } catch(e) {}
+  setBackgroundVolume(volume);
+  const audio = document.getElementById('background-music');
+  const btn = document.getElementById('music-toggle');
+  if (btn) btn.setAttribute('aria-pressed','false');
+  if (audio) {
+    audio.addEventListener('play', () => {
+      if (btn) { btn.classList.add('active'); btn.textContent = 'II'; btn.setAttribute('aria-pressed','true'); }
+    });
+    audio.addEventListener('pause', () => {
+      if (btn) { btn.classList.remove('active'); btn.textContent = '♪'; btn.setAttribute('aria-pressed','false'); }
+    });
+  }
+}
+
+function handleWindowResize() {
+  setAppChromeMetrics();
+  if (currentFocusId && !transitioning) {
+    const fid = currentFocusId;
+    currentFocusId = null;
+    transitionTo(fid, false);
+    setTimeout(centerCurrent, 80);
+  }
+}
+
+// Family name may switch to the isolated learning tree.
+let activeFamilyName = '';
+let activeDefaultFocus = '';
+let activeStorageKey = 'eliadora_people';
+let learningMode = false;
+const LEARNING_STORAGE_KEY = 'eliadora_learning_people';
+const LEARNING_FOCUS_ID = 'learn_start';
+const FAMILY_NAME = () => activeFamilyName || '';
+const DEFAULT_FOCUS = () => activeDefaultFocus || FOCUS_ID || PEOPLE[0]?.id || '';
+
+function isVideoSrc(src) {
+  return !!src && (/(\.mp4|\.webm|\.m4v|\.mov)(\?|#|$)/i.test(src) || /^data:video\//i.test(src));
+}
+function personVideoSrc(person) {
+  return person ? (person.video || person.mp4 || '') : '';
+}
+function makeVideo(src, className) {
+  const video = document.createElement('video');
+  video.src = src;
+  video.muted = true;
+  video.loop = true;
+  video.autoplay = true;
+  video.playsInline = true;
+  if (className) video.className = className;
+  return video;
+}
+function loadVideoFile(input, targetId) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  if (!(/^video\/(mp4|webm|quicktime)$/i.test(file.type) || /\.(mp4|webm|mov|m4v)$/i.test(file.name))) {
+    alert('Wybierz plik MP4/WebM.');
+    input.value = '';
+    return;
+  }
+  // Hard limit: data URLs above ~2 MB will likely break browser save (they're
+  // stored as base64 = ~33% overhead). Even 2 MB is risky if combined across
+  // people. We accept up to 2 MB but warn that it WON'T be persisted across
+  // page reloads (savePeople strips data: URLs).
+  const MAX_INLINE = 2 * 1024 * 1024;
+  if (file.size > MAX_INLINE) {
+    alert('Plik jest za duży na bezpośrednie wczytanie (limit ' + Math.round(MAX_INLINE/1024/1024) + ' MB).\n\nLepiej połóż MP4 obok HTML-a i wpisz jego ścieżkę, np. media/portret.mp4.\nTaka ścieżka zostanie zapisana w przeglądarce; wczytany plik — nie.');
+    input.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const target = document.getElementById(targetId);
+    if (target) target.value = reader.result;
+    const note = document.getElementById(targetId + '-status');
+    if (note) note.textContent = 'MP4 widoczny tylko w tej sesji. Aby zapis trwał na stałe, użyj ścieżki względnej (np. media/portret.mp4).';
+  };
+  reader.readAsDataURL(file);
+}
+function setImageFolderPrefix(prefix) {
+  const target = document.getElementById('ef-image');
+  const note = document.getElementById('ef-image-status');
+  if (!target) return;
+  const raw = String(target.value || '').split(/[\\/]/).pop();
+  target.value = prefix + raw;
+  if (note) note.textContent = prefix
+    ? `Folder ustawiony: ${prefix}. Wybierz plik albo dopisz nazwę, np. ${prefix}ola.png.`
+    : 'Folder główny: wpisz samą nazwę pliku, np. adult_f.png.';
+}
+function loadImageFile(input, targetId) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  if (!(/^image\/(png|jpeg|jpg|webp|gif)$/i.test(file.type) || /\.(png|jpe?g|webp|gif)$/i.test(file.name))) {
+    alert('Wybierz plik JPG, PNG, WEBP albo GIF.');
+    input.value = '';
+    return;
+  }
+  const target = document.getElementById(targetId);
+  if (!target) return;
+  const current = String(target.value || '');
+  const folder = current.includes('/') ? current.slice(0, current.lastIndexOf('/') + 1) : 'p/';
+  target.value = folder + file.name;
+  const note = document.getElementById(targetId + '-status');
+  if (note) note.textContent = `Wpisano ${target.value}. Upewnij się, że ten plik leży w folderze projektu: ${folder || 'głównym'}.`;
+}
+
+// ─── DATE FORMATTER ───────────────────────────────────────────────────────────
+// Accepts: '1982', '1982-03', '1982-03-15', or legacy numbers like 1982
+const MONTHS = {
+  pl: ['stycznia','lutego','marca','kwietnia','maja','czerwca','lipca','sierpnia','września','października','listopada','grudnia'],
+  en: ['January','February','March','April','May','June','July','August','September','October','November','December'],
+  es: ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'],
+  fr: ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'],
+};
+function formatDate(val) {
+  if (!val && val !== 0) return '';
+  const s = String(val).trim();
+  if (/^\d{4}$/.test(s)) return s;
+  const parts = s.split('-');
+  if (parts.length === 2) {
+    const m = parseInt(parts[1], 10) - 1;
+    const mName = (MONTHS[lang] || MONTHS.pl)[m] || parts[1];
+    return `${mName} ${parts[0]}`;
+  }
+  if (parts.length === 3) {
+    const day = parseInt(parts[2], 10);
+    const m   = parseInt(parts[1], 10) - 1;
+    const yr  = parts[0];
+    const mName = (MONTHS[lang] || MONTHS.pl)[m] || parts[1];
+    if (lang === 'pl') return `${day} ${mName} ${yr}`;
+    if (lang === 'en') return `${mName} ${day}, ${yr}`;
+    if (lang === 'es') return `${day} de ${mName} de ${yr}`;
+    if (lang === 'fr') return `${day} ${mName} ${yr}`;
+    return `${day} ${mName} ${yr}`;
+  }
+  return s;
+}
+// Extract birth year as a number for age calculations
+function birthYear(val) {
+  if (!val && val !== 0) return null;
+  return parseInt(String(val).split('-')[0], 10);
+}
+
+// ─── FLAG HELPER ──────────────────────────────────────────────────────────────
+const FLAG_MAP = {
+  PL:'🇵🇱', DE:'🇩🇪', CZ:'🇨🇿', SK:'🇸🇰',
+  UA:'🇺🇦', BY:'🇧🇾', LT:'🇱🇹', RU:'🇷🇺',
+};
+function getFlags(nat) {
+  if (!nat) return '';
+  const codes = Array.isArray(nat) ? nat : [nat];
+  return codes.map(c => FLAG_MAP[c] || '').join('');
+}
+
+// ─── DATA (loaded from eliadora-data.js) ──────────────────────────────────────
+// If the external file fails to load (e.g. opened via file:// without a server,
+// or wrong path, or syntax error in the data file), we show a friendly message
+// and stop rather than rendering a confusing blank app.
+const _DATA_LOADED = typeof window.ELIADORA_DATA !== 'undefined';
+const _DATA    = window.ELIADORA_DATA || { familyName: '', defaultFocus: '', people: [] };
+const FOCUS_ID = _DATA.defaultFocus || (_DATA.people?.[0]?.id) || '';
+activeFamilyName = _DATA.familyName || '';
+activeDefaultFocus = FOCUS_ID;
+
+function showDataLoadError(reason) {
+  // Build a visible error pane. Uses textContent only — no innerHTML — so the
+  // reason string is always safely escaped.
+  const pane = document.createElement('div');
+  pane.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:40px;background:rgba(248,234,200,0.96);font-family:Georgia,serif;color:#3a1b06';
+  const box = document.createElement('div');
+  box.style.cssText = 'max-width:560px;background:#fff8e8;border:2px solid #8b6914;border-radius:8px;padding:32px;box-shadow:0 6px 32px rgba(0,0,0,0.18)';
+  const title = document.createElement('h2');
+  title.textContent = 'Nie udało się załadować danych drzewa';
+  title.style.cssText = 'margin:0 0 14px;font-size:22px;color:#5c2a05';
+  const msg = document.createElement('p');
+  msg.style.cssText = 'margin:0 0 14px;font-size:15px;line-height:1.55';
+  msg.textContent = reason;
+  const hint = document.createElement('p');
+  hint.style.cssText = 'margin:14px 0 0;font-size:13px;color:#6c4818;line-height:1.55';
+  hint.textContent = 'Otwórz przez lokalny serwer HTTP, np.: python3 -m http.server, a potem http://localhost:8000/ — albo sprawdź, czy plik eliadora-data.js leży obok HTML-a.';
+  box.append(title, msg, hint);
+  pane.appendChild(box);
+  document.body.appendChild(pane);
+}
+
+if (!_DATA_LOADED) {
+  // Data file didn't load (no window.ELIADORA_DATA). Show error and bail.
+  // We defer to next tick so <body> is available.
+  setTimeout(() => showDataLoadError(
+    'Plik eliadora-data.js nie został wczytany. Najczęstsze przyczyny: otwarcie przez file:// (CORS blokuje skrypt), zła ścieżka, błąd składni w pliku danych.'
+  ), 0);
+  // Prevent the rest of init from running — throw a non-blocking signal.
+  // We don't `throw` because that would leave the page broken; instead let the
+  // empty _DATA fallback render an empty tree (the error pane covers it anyway).
+}
+
+// PEOPLE is the live mutable runtime array.
+// On startup: load from localStorage if available (user edits), else use data file.
+let PEOPLE = (() => {
+  try {
+    const saved = localStorage.getItem('eliadora_people');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Self-healing: if saved data doesn't contain the default focal person,
+      // it's corrupted — discard it and fall back to the data file silently.
+      const focusExists = parsed.some(p => p.id === (_DATA.defaultFocus || ''));
+      if (focusExists) return parsed;
+      localStorage.removeItem('eliadora_people');
+    }
+  } catch(e) { try { localStorage.removeItem('eliadora_people'); } catch(e2) {} }
+  return (_DATA.people || []).map(p => ({...p}));
+})();
+
+// Normalize every person to guarantee p[] and s[] exist. Without this,
+// imported data missing these fields crashes buildHourglass on first call.
+function normalizePeople(people) {
+  people.forEach(p => {
+    if (!Array.isArray(p.p)) p.p = [];
+    if (!Array.isArray(p.s)) p.s = [];
+  });
+}
+normalizePeople(PEOPLE);
+
+let PMAP = Object.fromEntries(PEOPLE.map(p => [p.id, p]));
+function rebuildPMAP() { PMAP = Object.fromEntries(PEOPLE.map(p => [p.id, p])); }
+
+// ── Stale ID cleanup ──────────────────────────────────────────────────────────
+// Runs once on load. Removes any IDs in p[] or s[] that don't exist in PMAP.
+// Silently fixes corrupted data from previous sessions without user intervention.
+function cleanStaleIds() {
+  let changed = false;
+  PEOPLE.forEach(person => {
+    const cleanP = (person.p || []).filter(id => id && PMAP[id]);
+    const cleanS = (person.s || []).filter(id => id && PMAP[id]);
+    if (cleanP.length !== (person.p||[]).length) { person.p = cleanP; changed = true; }
+    if (cleanS.length !== (person.s||[]).length) { person.s = cleanS; changed = true; }
+  });
+  if (changed) {
+    rebuildPMAP();
+    // Don't write here — buildSavable() is defined further down, and any user
+    // action will trigger savePeople() which writes safely. If the page is
+    // closed without further action, next load will run cleanStaleIds again.
+  }
+}
+cleanStaleIds();
+
+function createLearningPeople() {
+  return [
+    {
+      id: LEARNING_FOCUS_ID,
+      fn: 'Osoba',
+      ln: 'Startowa',
+      full: 'Osoba Startowa',
+      g: 'F',
+      b: '1990',
+      bp: 'Miejsce urodzenia',
+      image: 'p/ola.png',
+      nat: ['PL'],
+      bio: {
+        pl: 'To jest osobne drzewo do nauki. Możesz edytować tę osobę, dodawać rodziców, małżonka i dzieci bez zmieniania prawdziwego drzewa.'
+      },
+      p: [],
+      s: []
+    }
+  ];
+}
+
+function loadLearningPeople() {
+  try {
+    const saved = localStorage.getItem(LEARNING_STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.some(p => p.id === LEARNING_FOCUS_ID)) return parsed;
+      localStorage.removeItem(LEARNING_STORAGE_KEY);
+    }
+  } catch(e) { try { localStorage.removeItem(LEARNING_STORAGE_KEY); } catch(e2) {} }
+  return createLearningPeople();
+}
+
+function activateRuntimeTree({ people, familyName, defaultFocus, storageKey, isLearning }) {
+  PEOPLE = people.map(p => ({...p}));
+  normalizePeople(PEOPLE);
+  activeFamilyName = familyName;
+  activeDefaultFocus = defaultFocus;
+  activeStorageKey = storageKey;
+  learningMode = !!isLearning;
+  document.body.classList.toggle('learning-mode', learningMode);
+  rebuildPMAP();
+  cleanStaleIds();
+  navHistory = [];
+  navIndex = -1;
+  currentFocusId = null;
+  sidebarReturnId = null;
+  restoreSidebarView();
+  rebuildPersonSearch();
+  updateNavControls();
+  updateOrphanBtn();
+  document.getElementById('family-name').textContent = FAMILY_NAME();
+  updateCoverText();
+  transitionTo(defaultFocus, false);
+  setTimeout(centerCurrent, 80);
+}
+
+function enterLearningTree(reset = false) {
+  const people = reset ? createLearningPeople() : loadLearningPeople();
+  if (reset) {
+    try { localStorage.setItem(LEARNING_STORAGE_KEY, JSON.stringify(buildSavable(people))); } catch(e) {}
+  }
+  closeHelpTutorial();
+  activateRuntimeTree({
+    people,
+    familyName: 'Drzewo do nauki',
+    defaultFocus: LEARNING_FOCUS_ID,
+    storageKey: LEARNING_STORAGE_KEY,
+    isLearning: true
+  });
+  savePeople();
+  openSidebarFor(LEARNING_FOCUS_ID);
+}
+
+function resetLearningTree() {
+  if (!learningMode && !confirm('Utworzyć nowe osobne drzewo do nauki?')) return;
+  if (learningMode && !confirm('Zresetować drzewo do nauki od zera?')) return;
+  enterLearningTree(true);
+}
+
+function exitLearningTree() {
+  if (!learningMode) return;
+  location.reload();
+}
+
+// ─── LAYOUT CONSTANTS ─────────────────────────────────────────────────────────
+// Layout dimensions in SVG units (≈ CSS pixels at 100% zoom).
+const L = {
+  CW: 108,   // Card width
+  CH: 104,   // Card height
+  CG: 18,    // Card gap (horizontal gap between paired spouses within a unit)
+  BU: 42,    // Between-unit gap (horizontal gap between separate family units)
+  RH: 170,   // Row height (vertical distance between generation rows)
+  PX: 80,    // Padding-X (left margin of the SVG content)
+  PY: 70,    // Padding-Y (top margin of the SVG content)
+  PR_N: 32,  // Portrait radius — normal (non-focal cards)
+  PR_F: 38,  // Portrait radius — focal card (the highlighted person)
+  PC_N: 37,  // Portrait center-Y — normal
+  PC_F: 42,  // Portrait center-Y — focal
+};
+L.UW = L.CW * 2 + L.CG;   // Unit width — a couple (two cards + their inner gap)
+L.CO = (L.CW + L.CG) / 2; // Card offset — distance from unit centre to each card centre
+L.ML_Y = L.PC_N;          // Marriage-line Y — height at which the spouse line is drawn
+
+// ─── RNG + AGE ────────────────────────────────────────────────────────────────
+function seededRand(id) {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (Math.imul(31, h) + id.charCodeAt(i)) | 0;
+  return () => { h = (Math.imul(1664525, h) + 1013904223) | 0; return (h >>> 0) / 0xFFFFFFFF; };
+}
+function ageGroup(p) {
+  const by  = birthYear(p.b);
+  if (!by) return 'adult';
+  const ref = birthYear(p.d) || new Date().getFullYear();
+  const age = ref - by;
+  return age < 15 ? 'child' : age < 65 ? 'adult' : 'elder';
+}
+
+// ─── FACE GENERATOR ───────────────────────────────────────────────────────────
+function buildFaceSVG(person, r) {
+  const rand=seededRand(person.id), grp=ageGroup(person);
+  const isF=person.g==='F', isChild=grp==='child', isElder=grp==='elder';
+  const cx=r, cy=r;
+  const skinPal=isF?['#FDDCB5','#FDC8A0','#F5B480']:['#FDDCB5','#FDC8A0','#F5B480','#E8A068','#D48850'];
+  const skin=skinPal[Math.floor(rand()*skinPal.length)];
+  const hairPal=isElder?['#C0C0B8','#D0C8B0','#B8B8B0','#E0DDD8']:isChild?['#7B3A00','#C07028','#D4A020','#3A1800','#1A0800']:['#5C2800','#8B4513','#C07828','#1C0800','#2A2020','#7A6040'];
+  const hair=hairPal[Math.floor(rand()*hairPal.length)];
+  const OL='#5C2800', SW=Math.max(1.0,r*0.055);
+  const hR=r*0.68, hCx=cx, hCy=cy+r*0.09;
+  const bg=isChild&&isF?'#FFF0F5':isChild?'#F0F5FF':isF?'#FEF0F8':'#F0F5FF';
+  const p=[];
+  p.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${bg}"/>`);
+  if(isF&&!isElder) p.push(`<ellipse cx="${hCx}" cy="${hCy+hR*0.10}" rx="${hR*1.24}" ry="${hR*1.26}" fill="${hair}" stroke="${OL}" stroke-width="${SW*0.80}"/>`);
+  p.push(`<circle cx="${hCx}" cy="${hCy}" r="${hR}" fill="${skin}" stroke="${OL}" stroke-width="${SW}"/>`);
+  const earR=hR*0.148,earY=hCy+hR*0.02;
+  [hCx-hR*0.91,hCx+hR*0.91].forEach(ex=>{p.push(`<circle cx="${ex}" cy="${earY}" r="${earR}" fill="${skin}" stroke="${OL}" stroke-width="${SW*0.65}"/>`);});
+  if(isElder){
+    if(!isF) p.push(`<ellipse cx="${hCx}" cy="${hCy-hR*0.82}" rx="${hR*0.46}" ry="${hR*0.18}" fill="${hair}" stroke="${OL}" stroke-width="${SW*0.55}" opacity="0.88"/>`);
+    else{const capCy=hCy-hR*0.64;p.push(`<ellipse cx="${hCx}" cy="${capCy}" rx="${hR*1.04}" ry="${hR*0.40}" fill="${hair}" stroke="${OL}" stroke-width="${SW*0.75}"/>`);for(let i=-1;i<=1;i++)p.push(`<circle cx="${hCx+i*hR*0.42}" cy="${capCy-hR*0.22}" r="${hR*0.19}" fill="${hair}"/>`);}
+  } else if(isF){
+    const capCy=hCy-hR*0.72;p.push(`<ellipse cx="${hCx}" cy="${capCy}" rx="${hR*1.10}" ry="${hR*0.37}" fill="${hair}" stroke="${OL}" stroke-width="${SW*0.80}"/>`);
+    if(isChild)[hCx-hR*1.06,hCx+hR*1.06].forEach(bx=>p.push(`<circle cx="${bx}" cy="${hCy-hR*0.20}" r="${hR*0.23}" fill="${hair}" stroke="${OL}" stroke-width="${SW*0.65}"/>`));
+  } else {
+    const capCy=hCy-hR*0.76;p.push(`<ellipse cx="${hCx}" cy="${capCy}" rx="${hR*0.98}" ry="${hR*0.32}" fill="${hair}" stroke="${OL}" stroke-width="${SW*0.80}"/>`);
+    if(isChild)for(let i=-1;i<=1;i++){const sx=hCx+i*hR*0.32,tCy=hCy-hR*0.92;p.push(`<ellipse cx="${sx}" cy="${tCy}" rx="${hR*0.088}" ry="${hR*0.18}" fill="${hair}" transform="rotate(${i*14} ${sx} ${tCy+hR*0.10})"/>`);}
+  }
+  const eyeY=hCy-hR*0.14,eyeOff=hR*0.30,eyeRx=hR*0.158,eyeRy=hR*0.122;
+  [-eyeOff,eyeOff].forEach(ox=>{const ex=hCx+ox;
+    p.push(`<ellipse cx="${ex}" cy="${eyeY}" rx="${eyeRx}" ry="${eyeRy}" fill="white" stroke="${OL}" stroke-width="${SW*0.52}"/>`);
+    p.push(`<circle cx="${ex}" cy="${eyeY}" r="${hR*0.092}" fill="#3A1A00"/>`);
+    p.push(`<circle cx="${ex+hR*0.040}" cy="${eyeY-hR*0.040}" r="${hR*0.026}" fill="white"/>`);
+  });
+  const browY=eyeY-hR*0.225,browCol=isElder?'#909088':OL;
+  [-eyeOff,eyeOff].forEach(ox=>{const bx=hCx+ox,tilt=ox<0?0.042:-0.042;
+    p.push(`<path d="M${bx-hR*0.135},${browY+hR*tilt} Q${bx},${browY-hR*0.052} ${bx+hR*0.135},${browY+hR*tilt}" fill="none" stroke="${browCol}" stroke-width="${SW*0.88}" stroke-linecap="round"/>`);
+  });
+  const noseY=hCy+hR*0.10;
+  [-hR*0.08,hR*0.08].forEach(nx=>{const sign=nx<0?1:-1;
+    p.push(`<path d="M${hCx+nx},${noseY} Q${hCx+nx*0.5},${noseY+hR*0.075} ${hCx+nx*sign*0.02},${noseY+hR*0.065}" fill="none" stroke="#C08060" stroke-width="${SW*0.58}" stroke-linecap="round" opacity="0.60"/>`);
+  });
+  const cheekY=eyeY+hR*0.28;
+  [-eyeOff*1.18,eyeOff*1.18].forEach(ox=>p.push(`<ellipse cx="${hCx+ox}" cy="${cheekY}" rx="${hR*0.19}" ry="${hR*0.115}" fill="#FF5050" opacity="0.16"/>`));
+  const mouthY=hCy+hR*0.35,mouthW=hR*(isChild?0.268:0.208),mouthD=hR*0.115;
+  p.push(`<path d="M${hCx-mouthW},${mouthY} Q${hCx},${mouthY+mouthD} ${hCx+mouthW},${mouthY}" fill="none" stroke="#B84838" stroke-width="${SW*0.90}" stroke-linecap="round"/>`);
+  if(isElder){const wc='#C09070';
+    p.push(`<path d="M${hCx-hR*0.12},${noseY+hR*0.06} Q${hCx-hR*0.20},${mouthY-hR*0.06} ${hCx-mouthW*0.85},${mouthY}" fill="none" stroke="${wc}" stroke-width="${SW*0.46}" stroke-linecap="round" opacity="0.48"/>`);
+    p.push(`<path d="M${hCx+hR*0.12},${noseY+hR*0.06} Q${hCx+hR*0.20},${mouthY-hR*0.06} ${hCx+mouthW*0.85},${mouthY}" fill="none" stroke="${wc}" stroke-width="${SW*0.46}" stroke-linecap="round" opacity="0.48"/>`);
+    p.push(`<path d="M${hCx-hR*0.28},${hCy-hR*0.44} Q${hCx},${hCy-hR*0.47} ${hCx+hR*0.28},${hCy-hR*0.44}" fill="none" stroke="${wc}" stroke-width="${SW*0.36}" opacity="0.38"/>`);
+  }
+  return p.join('');
+}
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+function unitW(u) { return (u.male&&u.female)?L.UW:L.CW; }
+function cardCx(unit, personId) {
+  if (!unit.male||!unit.female) return unit.cx;
+  const p=PMAP[personId];
+  return p?unit.cx+(p.g==='M'?-L.CO:L.CO):unit.cx;
+}
+
+// ─── HOURGLASS BUILDER ────────────────────────────────────────────────────────
+function buildHourglass(focusId) {
+  function curSpouse(id){const p=PMAP[id];if(!p||!p.s.length)return null;return PMAP[p.s[p.s.length-1]]||null;}
+  function mkUnit(id,vis){const p=PMAP[id];if(!p)return null;const sp=curSpouse(id);const male=p.g==='M'?p:(sp&&sp.g==='M'?sp:null);const female=p.g==='F'?p:(sp&&sp.g==='F'?sp:null);return{male,female,mainId:id,vis};}
+  function getParents(id){
+    const p=PMAP[id]; if(!p||!p.p.length) return null;
+    if(p.p.length===1){ const par=PMAP[p.p[0]]; if(!par) return null; return par.g==='F'?{dad:null,mom:par}:{dad:par,mom:null}; }
+    const dad=PMAP[p.p[0]]||null, mom=PMAP[p.p[1]]||null;
+    return (dad||mom)?{dad,mom}:null;
+  }
+  const parents=getParents(focusId);
+  const row0=[mkUnit(focusId,'full')].filter(Boolean);
+  const row1=PEOPLE.filter(p=>p.p.includes(focusId))
+    .sort((a,b)=>(birthYear(a.b)||0)-(birthYear(b.b)||0))
+    .map(c=>mkUnit(c.id,'full')).filter(Boolean);
+  // Row +2: grandchildren, grouped by parent (preserves layout order), sorted within each group.
+  const row2=[]; const gcSeen=new Set();
+  row1.forEach(u=>{
+    const groupKids=[];
+    PEOPLE.forEach(gc=>{
+      if(gcSeen.has(gc.id)||!gc.p.includes(u.mainId))return;
+      gcSeen.add(gc.id);
+      const p=PMAP[gc.id]; if(!p) return;
+      groupKids.push({male:p.g==='M'?p:null, female:p.g==='F'?p:null, mainId:gc.id, vis:'faded', parentMainId:u.mainId});
+    });
+    // Sort within this parent's group only — never across groups
+    groupKids.sort((a,b)=>(birthYear(PMAP[a.mainId]?.b)||0)-(birthYear(PMAP[b.mainId]?.b)||0));
+    row2.push(...groupKids);
+  });
+  let rowM1=[];
+  if(parents){const dad=parents.dad,mom=parents.mom;const male=dad?.g==='M'?dad:(mom?.g==='M'?mom:null);const female=mom?.g==='F'?mom:(dad?.g==='F'?dad:null);rowM1=[{male,female,mainId:dad?.id||mom?.id,vis:'full'}].filter(u=>u&&u.mainId);}
+  const rowM2=[];
+  if(parents){
+    if(parents.dad){const dp=getParents(parents.dad.id);if(dp){const u=mkUnit(dp.dad?.id||dp.mom?.id,'full');if(u)rowM2.push({...u,childId:parents.dad.id});}}
+    if(parents.mom){const mp=getParents(parents.mom.id);if(mp){const u=mkUnit(mp.dad?.id||mp.mom?.id,'full');if(u)rowM2.push({...u,childId:parents.mom.id});}}
+  }
+  const siblings=[],seen=new Set([focusId]);
+  if(parents){
+    const dadId=parents.dad?.id, momId=parents.mom?.id;
+    PEOPLE.forEach(p=>{
+      if(seen.has(p.id))return;
+      const sharesDad=!!(dadId&&p.p.includes(dadId));
+      const sharesMom=!!(momId&&p.p.includes(momId));
+      if(!sharesDad&&!sharesMom)return;
+      const spId=p.s[p.s.length-1];
+      seen.add(p.id);if(spId)seen.add(spId);
+      const isHalf=!(sharesDad&&sharesMom);
+      const u=mkUnit(p.id,'faded'); if(!u) return;
+      siblings.push({...u,isHalf});
+    });
+  }
+  siblings.sort((a,b)=>(birthYear(PMAP[a.mainId]?.b)||0)-(birthYear(PMAP[b.mainId]?.b)||0));
+  const formerSpouses=[];
+  const fp=PMAP[focusId];
+  if(fp&&fp.s.length>1){
+    for(let i=0;i<fp.s.length-1;i++){
+      const fs=PMAP[fp.s[i]]; if(!fs) continue;
+      formerSpouses.push({male:fs.g==='M'?fs:null, female:fs.g==='F'?fs:null, mainId:fs.id, vis:'full', isFormer:true});
+    }
+  }
+  return{row0,rowM1,rowM2,row1,row2,siblings,formerSpouses};
+}
+
+// ─── LAYOUT ───────────────────────────────────────────────────────────────────
+function calculateLayout(hg) {
+  const Y={M2:L.PY,M1:L.PY+L.RH,R0:L.PY+L.RH*2,R1:L.PY+L.RH*3,R2:L.PY+L.RH*4};
+  function rw(us){return us.length?us.reduce((s,u)=>s+unitW(u),0)+(us.length-1)*L.BU:0;}
+  function ax(us,cx){let x=cx-rw(us)/2;return us.map(u=>{const uw=unitW(u),ucx=x+uw/2;x+=uw+L.BU;return{...u,cx:ucx};});}
+  const r2=ax(hg.rowM2,0),r1=ax(hg.rowM1,0),r0=ax(hg.row0,0),r1p=ax(hg.row1,0);
+  // Row+2: simple global centering, but parent-grouped order (fixed in buildHourglass).
+  // Grouping prevents crossing lines between different families.
+  // Simple centering keeps the row compact and avoids excessive spread.
+  const r2p=ax(hg.row2,0);
+
+  const fHW=r0.length?unitW(r0[0])/2:0;
+  const fS=hg.siblings.filter(s=>!s.isHalf),hS=hg.siblings.filter(s=>s.isHalf);
+  let rx=fHW+L.BU;const rS=fS.map(s=>{const uw=unitW(s),cx=rx+uw/2;rx+=uw+L.BU;return{...s,cx};});
+  let lx=-(fHW+L.BU);const lS=hS.map(s=>{const uw=unitW(s),cx=lx-uw/2;lx-=uw+L.BU;return{...s,cx};});
+  // Former spouses: placed left of focal couple, oldest furthest left.
+  const fmr=[];
+  if(hg.formerSpouses&&hg.formerSpouses.length){
+    const focalLE=r0.length?r0[0].cx-unitW(r0[0])/2:0;
+    let nextRE=focalLE-L.BU;
+    for(let i=hg.formerSpouses.length-1;i>=0;i--){
+      const fs=hg.formerSpouses[i], uw=unitW(fs), cx=nextRE-uw/2;
+      nextRE=cx-uw/2-L.BU;
+      fmr[i]={...fs,cx};
+    }
+  }
+  const all=[...r2,...r1,...r0,...r1p,...r2p,...rS,...lS,...fmr];
+  if(!all.length)return{rowM2:[],rowM1:[],row0:[],row1:[],row2:[],siblings:[],formerSpouseUnits:[],svgW:800,svgH:600,focalCx:400};
+  const le=Math.min(...all.map(u=>u.cx-unitW(u)/2));
+  const re=Math.max(...all.map(u=>u.cx+unitW(u)/2));
+  const sh=u=>({...u,cx:u.cx+(L.PX-le)});
+  let maxY=Y.R0+L.CH;
+  if(r1p.length)maxY=Math.max(maxY,Y.R1+L.CH);
+  if(r2p.length)maxY=Math.max(maxY,Y.R2+L.CH);
+  return{
+    rowM2:r2.map(u=>({...sh(u),y:Y.M2})),rowM1:r1.map(u=>({...sh(u),y:Y.M1})),
+    row0:r0.map(u=>({...sh(u),y:Y.R0})),row1:r1p.map(u=>({...sh(u),y:Y.R1})),
+    row2:r2p.map(u=>({...sh(u),y:Y.R2})),siblings:[...rS,...lS].map(u=>({...sh(u),y:Y.R0})),
+    formerSpouseUnits:fmr.map(u=>({...sh(u),y:Y.R0})),
+    svgW:Math.ceil(re-le+L.PX*2),svgH:maxY+L.PY,
+    focalCx:(r0.length?r0[0].cx:0)+(L.PX-le),
+  };
+}
+
+// ─── FLAT DATA BUILDERS ───────────────────────────────────────────────────────
+function buildCardData(pos,focusId){
+  const cards=[];
+  function addUnit(unit,isFormer){
+    const lx=unit.cx-unitW(unit)/2,op=unit.vis==='faded'?0.42:1;
+    if(unit.male&&unit.female){
+      cards.push({id:unit.male.id,  x:lx,           y:unit.y,person:unit.male,  isFocal:unit.male.id===focusId,  opacity:op,isFormer:!!isFormer});
+      cards.push({id:unit.female.id,x:lx+L.CW+L.CG, y:unit.y,person:unit.female,isFocal:unit.female.id===focusId,opacity:op,isFormer:!!isFormer});
+    } else {
+      const p=unit.male||unit.female;
+      if(p) cards.push({id:p.id,x:lx,y:unit.y,person:p,isFocal:p.id===focusId,opacity:op,isFormer:!!isFormer});
+    }
+  }
+  [...pos.rowM2,...pos.rowM1,...pos.row0,...pos.row1,...pos.row2,...pos.siblings].forEach(u=>addUnit(u,false));
+  (pos.formerSpouseUnits||[]).forEach(u=>addUnit(u,true));
+  return cards;
+}
+function buildMarriageData(pos){
+  const lines=[];
+  function addUnit(unit){if(!unit.male||!unit.female)return;const lx=unit.cx-unitW(unit)/2;
+    lines.push({key:unit.male.id+'~'+unit.female.id,x1:lx+L.CW,y1:unit.y+L.ML_Y,x2:lx+L.CW+L.CG,y2:unit.y+L.ML_Y,op:unit.vis==='faded'?0.35:1});}
+  [...pos.rowM2,...pos.rowM1,...pos.row0,...pos.row1,...pos.row2,...pos.siblings].forEach(addUnit);
+  return lines;
+}
+
+// ─── DRAW CARD ────────────────────────────────────────────────────────────────
+function drawCardInto(sel, d) {
+  sel.selectAll('*').remove();
+  const person=d.person, pr=d.isFocal?L.PR_F:L.PR_N, pc=d.isFocal?L.PC_F:L.PC_N;
+  const cxC=L.CW/2, nameY=pc+pr+13, surnameY=pc+pr+24;
+  let fill=person.g==='M'?'#dde9f3':'#f5e4ee', stroke=person.g==='M'?'#6b9db8':'#c07898', rimCol=person.g==='M'?'#5888a0':'#b06080';
+  if(d.isFocal){fill='#fffbe8';stroke='#c8960a';rimCol='#a07810';}
+  // Former spouses keep their gender fill but get a dashed amber border
+  const isFormerCard = d.isFormer && !d.isFocal;
+  if(isFormerCard){ stroke='#b89040'; rimCol=person.g==='M'?'#5888a0':'#b06080'; }
+  sel.append('rect').attr('x',2).attr('y',3).attr('width',L.CW).attr('height',L.CH).attr('rx',10).attr('fill','rgba(0,0,0,0.08)');
+  const cardRect = sel.append('rect').attr('x',0).attr('y',0).attr('width',L.CW).attr('height',L.CH).attr('rx',10).attr('fill',fill).attr('stroke',stroke).attr('stroke-width',d.isFocal?2.5:1.5);
+  if(isFormerCard) cardRect.attr('stroke-dasharray','5,3');
+  if(d.isFocal){sel.append('circle').attr('cx',cxC).attr('cy',pc).attr('r',pr+5).attr('fill','none').attr('stroke','#e8b800').attr('stroke-width',3).attr('opacity',0.55);sel.append('circle').attr('cx',cxC).attr('cy',pc).attr('r',pr+10).attr('fill','none').attr('stroke','#f0d040').attr('stroke-width',1).attr('opacity',0.22);}
+  const clipId='cp-'+person.id+(d.isFocal?'f':'n');
+  sel.append('defs').append('clipPath').attr('id',clipId).append('circle').attr('cx',cxC).attr('cy',pc).attr('r',pr);
+  sel.append('g').attr('clip-path',`url(#${clipId})`).append('g').attr('transform',`translate(${cxC-pr},${pc-pr})`).html(buildFaceSVG(person,pr));
+  sel.append('circle').attr('cx',cxC).attr('cy',pc).attr('r',pr).attr('clip-path',`url(#${clipId})`).attr('fill','white');
+  // Image source: focal+gif → animate; person.image → portrait; else generic placeholder
+  const imgSrc = (d.isFocal && person.gif) ? person.gif
+               : person.image ? person.image
+               : `${ageGroup(person)}_${person.g.toLowerCase()}.png`;
+  sel.append('image').attr('class','portrait-img').attr('href',imgSrc).attr('x',cxC-pr).attr('y',pc-pr).attr('width',pr*2).attr('height',pr*2).attr('clip-path',`url(#${clipId})`).attr('preserveAspectRatio','xMidYMid slice');
+  if(personVideoSrc(person)){
+    sel.append('circle').attr('cx',cxC+pr-8).attr('cy',pc+pr-8).attr('r',9).attr('fill','#3a2410').attr('opacity',0.82);
+    sel.append('path').attr('d',`M ${cxC+pr-11} ${pc+pr-13} L ${cxC+pr-11} ${pc+pr-3} L ${cxC+pr-3} ${pc+pr-8} Z`).attr('fill','#fff4d0');
+  }
+  sel.append('circle').attr('cx',cxC).attr('cy',pc).attr('r',pr).attr('fill','none').attr('stroke',rimCol).attr('stroke-width',d.isFocal?2.5:1.8);
+  const cardName = seniorMode ? String(person.fn || '').toUpperCase() : person.fn;
+  const cardSurname = seniorMode ? String(person.ln || '').toUpperCase() : person.ln;
+  sel.append('text').attr('x',cxC).attr('y',nameY).attr('text-anchor','middle').attr('font-size',seniorMode?(d.isFocal?'13px':'12px'):(d.isFocal?'12px':'11px')).attr('font-weight','800').attr('fill','#120904').attr('stroke','#fff5dc').attr('stroke-width',1.8).attr('paint-order','stroke').attr('font-family','Segoe UI, sans-serif').text(cardName);
+  sel.append('text').attr('x',cxC).attr('y',surnameY).attr('text-anchor','middle').attr('font-size',seniorMode?'10px':'9px').attr('font-weight','800').attr('fill','#2b1708').attr('stroke','#fff5dc').attr('stroke-width',1.45).attr('paint-order','stroke').attr('font-family','Segoe UI, sans-serif').text(cardSurname);
+  // Flags are shown in the sidebar only — not on the card.
+}
+
+// ─── CONNECTORS ───────────────────────────────────────────────────────────────
+function drawConnectors(g,pos,focusId,animate=false){
+  const col='#9b7820',lw=1.5;
+  // Per-family colour palette for row+2. Warm muted tones on parchment.
+  // Each row+1 family gets its own colour so grandchildren groups are visually distinct.
+  const PALETTE=['#9b7820','#7a5a9a','#2a7a5a','#8a3a3a','#2a5a8a','#9a602a'];
+  let _col=col;
+  let burnIndex=0;
+  function magmaBurn(el){
+    if(!animate) return;
+    const node=el.node();
+    if(!node) return;
+    const finalStroke=el.attr('stroke')||_col;
+    const finalOpacity=el.attr('opacity')||'0.76';
+    const finalDash=el.attr('stroke-dasharray');
+    const len=Math.max(1, (node.getTotalLength ? node.getTotalLength() : Math.hypot((+el.attr('x2')||0)-(+el.attr('x1')||0), (+el.attr('y2')||0)-(+el.attr('y1')||0))));
+    el.interrupt()
+      .attr('filter','url(#magmaGlow)')
+      .attr('stroke','#ff7a18')
+      .attr('opacity',0.95)
+      .attr('stroke-dasharray',len)
+      .attr('stroke-dashoffset',len)
+      .transition()
+      .delay(Math.min(240, burnIndex++ * 22))
+      .duration(360)
+      .ease(d3.easeCubicOut)
+      .attr('stroke-dashoffset',0)
+      .on('end', function(){
+        const s=d3.select(this);
+        s.attr('filter',null)
+          .attr('stroke-dashoffset',null)
+          .attr('stroke-dasharray',finalDash || null)
+          .transition()
+          .duration(180)
+          .attr('stroke',finalStroke)
+          .attr('opacity',finalOpacity);
+      });
+  }
+  function seg(x1,y1,x2,y2,dash,op){const o=op??(dash?0.56:0.76);const el=g.append('line').attr('class','conn').attr('x1',x1).attr('y1',y1).attr('x2',x2).attr('y2',y2).attr('stroke',_col).attr('stroke-width',dash?lw-0.35:lw+0.25).attr('opacity',o);if(dash)el.attr('stroke-dasharray','5,3');magmaBurn(el);}
+  function elbow(sx,sy,tx,ty,dash,op){const o=op??(dash?0.56:0.76),my=(sy+ty)/2;const el=g.append('path').attr('class','conn').attr('d',`M${sx},${sy} V${my} H${tx} V${ty}`).attr('fill','none').attr('stroke',_col).attr('stroke-width',dash?lw-0.35:lw+0.25).attr('opacity',o);if(dash)el.attr('stroke-dasharray','5,3');magmaBurn(el);}
+  function fan(sx,sy,targets,dash,op){if(!targets.length)return;const tY=targets[0].y,mid=(sy+tY)/2,xs=[sx,...targets.map(t=>t.x)];seg(sx,sy,sx,mid,dash,op);seg(Math.min(...xs),mid,Math.max(...xs),mid,dash,op);targets.forEach(t=>seg(t.x,mid,t.x,t.y,dash,op));}
+  function connectDown(pu,cus,dash,op){if(!cus.length)return;const ids=new Set([pu.male?.id,pu.female?.id].filter(Boolean));const cur=[],half=[];cus.forEach(u=>{const c=PMAP[u.mainId],sh=c?c.p.filter(pid=>ids.has(pid)).length:0;(sh>=2?cur:half).push({x:cardCx(u,u.mainId),y:u.y});});if(cur.length)fan(pu.cx,pu.y+L.CH,cur,dash,op);if(half.length){const fx=cardCx(pu,pu.mainId);half.forEach(({x,y})=>elbow(fx,pu.y+L.CH,x,y,true,op));}}
+  if(pos.rowM1.length)pos.rowM2.forEach(gp=>{if(gp.childId)elbow(gp.cx,gp.y+L.CH,cardCx(pos.rowM1[0],gp.childId),pos.rowM1[0].y,false);});
+  if(pos.rowM1.length&&pos.row0.length){const src=pos.rowM1[0];const fT={x:cardCx(pos.row0[0],focusId),y:pos.row0[0].y};const fST=pos.siblings.filter(s=>!s.isHalf).map(s=>({x:cardCx(s,s.mainId),y:s.y}));fan(src.cx,src.y+L.CH,[fT,...fST],false);pos.siblings.filter(s=>s.isHalf).forEach(hs=>elbow(cardCx(src,src.mainId),src.y+L.CH,cardCx(hs,hs.mainId),hs.y,true));}
+  if(pos.row1.length&&pos.row0.length)connectDown(pos.row0[0],pos.row1,false);
+  // Row+2: each family group gets its own colour from the palette
+  if(pos.row2.length&&pos.row1.length){
+    const gcM=new Map();
+    pos.row2.forEach(u=>{if(!gcM.has(u.parentMainId))gcM.set(u.parentMainId,[]);gcM.get(u.parentMainId).push(u);});
+    pos.row1.forEach((r1u,idx)=>{
+      const grp=gcM.get(r1u.mainId);
+      if(!grp?.length)return;
+      _col=PALETTE[idx%PALETTE.length]; // assign this family's colour
+      connectDown(r1u,grp,false,0.45);
+    });
+    _col=col; // reset to default
+  }
+  // Former spouses: dashed line from each former spouse's right edge to focal person's left edge.
+  // Drawn at card mid-height (L.ML_Y). Uses a distinct muted colour to signal past marriage.
+  if(pos.formerSpouseUnits&&pos.formerSpouseUnits.length&&pos.row0.length){
+    const focalUnit=pos.row0[0];
+    const focalLeftX=focalUnit.cx-unitW(focalUnit)/2;
+    const lineY=focalUnit.y+L.ML_Y;
+    pos.formerSpouseUnits.forEach(fsu=>{
+      const fsRightX=fsu.cx+unitW(fsu)/2;
+      const el=g.append('line').attr('class','conn')
+        .attr('x1',fsRightX).attr('y1',lineY).attr('x2',focalLeftX).attr('y2',lineY)
+        .attr('stroke','#a09880').attr('stroke-width',1.5)
+        .attr('stroke-dasharray','6,4').attr('opacity',0.7);
+      magmaBurn(el);
+    });
+  }
+}
+
+// ─── SVG LAYERS ───────────────────────────────────────────────────────────────
+const ROOT=d3.select('#tree-svg');
+const svgDefs=ROOT.append('defs');
+svgDefs.html(`
+  <filter id="magmaGlow" x="-30%" y="-30%" width="160%" height="160%">
+    <feGaussianBlur in="SourceGraphic" stdDeviation="2.2" result="blur"/>
+    <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0.95  0 0.38 0 0 0.18  0 0 0.08 0 0.02  0 0 0 0.85 0" result="hot"/>
+    <feMerge>
+      <feMergeNode in="hot"/>
+      <feMergeNode in="SourceGraphic"/>
+    </feMerge>
+  </filter>
+`);
+// Inner SVG background — slightly lighter than the body sepia so the tree "page"
+// reads as parchment laid on a book surface.
+const bgR=ROOT.append('rect').attr('fill','#f0ddb6').attr('opacity',0.10);
+const bgTint=ROOT.append('rect').attr('fill','#f0ddb6').attr('opacity',0);
+const grainL=ROOT.append('g'),labelL=ROOT.append('g'),connL=ROOT.append('g'),cardL=ROOT.append('g');
+
+function updateGrain(pos){
+  // Clears any previous grain artwork and applies the current theme's parchment
+  // tint to the SVG background rect. The historical updateGrainOld() that drew
+  // line/speck textures inside the SVG was removed — it lives only as CSS now.
+  grainL.selectAll('*').remove();
+  const theme = THEME_CONFIG[activeTheme] || THEME_CONFIG.nature;
+  if (bgR)   bgR.attr('fill', theme.svgBg).attr('opacity', 0.10);
+  if (bgTint) bgTint.attr('fill', theme.svgBg).attr('opacity', 0);
+}
+function updateLabels(pos){labelL.selectAll('*').remove();const add=(y,txt)=>labelL.append('text').attr('x',16).attr('y',y+L.CH/2+4).attr('text-anchor','start').attr('font-size',seniorMode?'13px':'11px').attr('font-weight','800').attr('fill','#4f310f').attr('stroke','#f6e7c3').attr('stroke-width',2.2).attr('paint-order','stroke').attr('font-family','Georgia, serif').attr('letter-spacing','1px').text(seniorMode?String(txt).toUpperCase():txt);
+  if(pos.rowM2.length)add(pos.rowM2[0].y,t('grandparents'));if(pos.rowM1.length)add(pos.rowM1[0].y,t('parents'));if(pos.row1.length)add(pos.row1[0].y,t('children'));if(pos.row2.length)add(pos.row2[0].y,t('grandchildren'));}
+
+// ─── TREE TRANSITION ──────────────────────────────────────────────────────────
+let currentFocusId=null, transitioning=false;
+let lastLayout=null, treeZoom=1, navHistory=[], navIndex=-1, suppressHistory=false;
+let suppressNextCardClick=false;
+let transitionTimer=null, transitionSeq=0, pendingFocusId=null;
+
+function personLabel(p) {
+  return `${p.fn || ''} ${p.ln || ''}${p.b ? ' (' + String(p.b).slice(0,4) + ')' : ''}`.trim();
+}
+function rebuildPersonSearch() {
+  const list = document.getElementById('people-search-list');
+  if (!list) return;
+  list.innerHTML = PEOPLE
+    .slice()
+    .sort((a,b)=>personLabel(a).localeCompare(personLabel(b), 'pl'))
+    .map(p=>`<option value="${esc(personLabel(p))}" data-id="${esc(p.id)}"></option>`)
+    .join('');
+}
+function updateNavControls() {
+  const back = document.getElementById('nav-back');
+  const fwd = document.getElementById('nav-forward');
+  if (back) back.disabled = navIndex <= 0;
+  if (fwd) fwd.disabled = navIndex < 0 || navIndex >= navHistory.length - 1;
+  const zoom = document.getElementById('zoom-label');
+  if (zoom) zoom.textContent = Math.round(treeZoom * 100) + '%';
+  const search = document.getElementById('person-search');
+  if (search && currentFocusId && PMAP[currentFocusId]) search.value = personLabel(PMAP[currentFocusId]);
+}
+function rememberNavigation(id) {
+  if (!id) return;
+  if (suppressHistory) { suppressHistory = false; updateNavControls(); return; }
+  if (navHistory[navIndex] === id) { updateNavControls(); return; }
+  navHistory = navHistory.slice(0, navIndex + 1);
+  navHistory.push(id);
+  navIndex = navHistory.length - 1;
+  updateNavControls();
+}
+function goHistory(delta) {
+  const next = navIndex + delta;
+  if (next < 0 || next >= navHistory.length) return;
+  navIndex = next;
+  suppressHistory = true;
+  transitionTo(navHistory[navIndex], true);
+  updateNavControls();
+}
+function navHome() {
+  const fid = DEFAULT_FOCUS();
+  if (fid && PMAP[fid]) transitionTo(fid, true);
+}
+function navSearchCommit() {
+  const input = document.getElementById('person-search');
+  if (!input) return;
+  const q = input.value.trim().toLowerCase();
+  if (!q) return;
+  const exact = PEOPLE.find(p => personLabel(p).toLowerCase() === q);
+  const partial = exact || PEOPLE.find(p => personLabel(p).toLowerCase().includes(q));
+  if (partial) transitionTo(partial.id, true);
+}
+function applyTreeZoom(pos = lastLayout) {
+  if (!pos) return;
+  const svg = document.getElementById('tree-svg');
+  svg.style.width = Math.round(pos.svgW * treeZoom) + 'px';
+  svg.style.height = Math.round(pos.svgH * treeZoom) + 'px';
+  updateNavControls();
+}
+function visibleTreeWidth() {
+  const c = document.getElementById('tree-container');
+  const raw = c?.clientWidth || window.innerWidth || 900;
+  let reserved = 0;
+  try {
+    if (typeof sidebarEl !== 'undefined' && sidebarEl && !sidebarHidden) {
+      reserved = Math.max(0, sidebarEl.offsetWidth - 34);
+    }
+  } catch(e) {}
+  return Math.max(420, raw - reserved);
+}
+function fitLayoutToViewport(pos) {
+  const minSvgW = Math.ceil(visibleTreeWidth() / Math.max(0.1, treeZoom));
+  if (!pos || pos.svgW >= minSvgW) return pos;
+  const dx = Math.round((minSvgW - pos.svgW) / 2);
+  const shift = u => ({...u, cx: u.cx + dx});
+  return {
+    ...pos,
+    rowM2: pos.rowM2.map(shift),
+    rowM1: pos.rowM1.map(shift),
+    row0: pos.row0.map(shift),
+    row1: pos.row1.map(shift),
+    row2: pos.row2.map(shift),
+    siblings: pos.siblings.map(shift),
+    formerSpouseUnits: (pos.formerSpouseUnits || []).map(shift),
+    svgW: minSvgW,
+    focalCx: pos.focalCx + dx,
+  };
+}
+function zoomTree(delta) {
+  treeZoom = Math.max(0.65, Math.min(1.75, Math.round((treeZoom + delta) * 100) / 100));
+  if (currentFocusId && !transitioning) {
+    const pos = fitLayoutToViewport(calculateLayout(buildHourglass(currentFocusId)));
+    lastLayout = pos;
+    ROOT.attr('width',pos.svgW).attr('height',pos.svgH).attr('viewBox',`0 0 ${pos.svgW} ${pos.svgH}`);
+    bgR.attr('width',pos.svgW).attr('height',pos.svgH);
+    bgTint.attr('width',pos.svgW).attr('height',pos.svgH);
+    applyTreeZoom(pos);
+  } else {
+    applyTreeZoom();
+  }
+  if (currentFocusId) setTimeout(centerCurrent, 40);
+}
+function resetZoom() {
+  treeZoom = 1;
+  if (currentFocusId && !transitioning) {
+    const pos = fitLayoutToViewport(calculateLayout(buildHourglass(currentFocusId)));
+    lastLayout = pos;
+    ROOT.attr('width',pos.svgW).attr('height',pos.svgH).attr('viewBox',`0 0 ${pos.svgW} ${pos.svgH}`);
+    bgR.attr('width',pos.svgW).attr('height',pos.svgH);
+    bgTint.attr('width',pos.svgW).attr('height',pos.svgH);
+    applyTreeZoom(pos);
+  } else {
+    applyTreeZoom();
+  }
+  if (currentFocusId) setTimeout(centerCurrent, 40);
+}
+function centerCurrent() {
+  if (!currentFocusId) return;
+  const pos = fitLayoutToViewport(calculateLayout(buildHourglass(currentFocusId)));
+  lastLayout = pos;
+  scrollToFocus(pos);
+}
+
+function interruptTreeMotion() {
+  if (transitionTimer) {
+    clearTimeout(transitionTimer);
+    transitionTimer = null;
+  }
+  cardL.selectAll('*').interrupt();
+  connL.selectAll('*').interrupt();
+  labelL.selectAll('*').interrupt();
+}
+
+function transitionTo(newFocusId, animate) {
+  if(!newFocusId || !PMAP[newFocusId]) return;
+  if(animate&&!transitioning&&newFocusId===currentFocusId){
+    centerCurrent();
+    if(!sidebarHidden)openSidebarFor(newFocusId);
+    return;
+  }
+  const token=++transitionSeq;
+  pendingFocusId=newFocusId;
+  interruptTreeMotion();
+  transitioning=true;
+  let hg, pos, cards, marriages;
+  try {
+    hg=buildHourglass(newFocusId); pos=fitLayoutToViewport(calculateLayout(hg));
+    cards=buildCardData(pos,newFocusId); marriages=buildMarriageData(pos);
+  } catch(e) {
+    console.error('Eliadora: failed to build hourglass for', newFocusId, e);
+    transitioning=false; pendingFocusId=null; return;
+  }
+  const FADE=animate?80:0,MOVE=animate?260:0,TOTAL=FADE+MOVE+40;
+  lastLayout = pos;
+  ROOT.attr('width',pos.svgW).attr('height',pos.svgH).attr('viewBox',`0 0 ${pos.svgW} ${pos.svgH}`);
+  applyTreeZoom(pos);
+  bgR.attr('width',pos.svgW).attr('height',pos.svgH);
+  bgTint.attr('width',pos.svgW).attr('height',pos.svgH);
+  updateGrain(pos);
+  connL.selectAll('.conn').remove();
+  const mSel=connL.selectAll('.ml').data(marriages,d=>d.key);
+  mSel.exit().remove();
+  mSel.enter().append('line').attr('class','ml').attr('stroke','#8b6914').attr('stroke-width',2).attr('x1',d=>d.x1).attr('y1',d=>d.y1).attr('x2',d=>d.x2).attr('y2',d=>d.y2).attr('opacity',0).transition().duration(120).delay(FADE).attr('opacity',d=>d.op);
+  mSel.transition().duration(MOVE).delay(FADE).attr('x1',d=>d.x1).attr('y1',d=>d.y1).attr('x2',d=>d.x2).attr('y2',d=>d.y2).attr('opacity',d=>d.op);
+  const cSel=cardL.selectAll('.card-g').data(cards,d=>d.id);
+  cSel.exit().transition().duration(FADE).attr('opacity',0).remove();
+  const entered=cSel.enter().append('g').attr('class','card-g').attr('transform',d=>`translate(${d.x},${d.y})`).attr('opacity',0).on('click',(ev,d)=>onCardClick(d.id));
+  entered.each(function(d){drawCardInto(d3.select(this),d);});
+  if(animate) entered.classed('entering',true);
+  entered.transition().duration(140).delay(FADE).attr('opacity',d=>d.opacity);
+  cSel.on('click',(ev,d)=>onCardClick(d.id));
+  cSel.each(function(d){drawCardInto(d3.select(this),d);});
+  if(animate) cSel.classed('entering',true);
+  cSel.classed('revealing',false).transition().duration(MOVE).delay(FADE).attr('transform',d=>`translate(${d.x},${d.y})`).attr('opacity',d=>d.opacity);
+  transitionTimer=setTimeout(()=>{
+    if(token!==transitionSeq) return;
+    if(animate) {
+      cardL.selectAll('.card-g').classed('entering',true);
+      setTimeout(()=>cardL.selectAll('.card-g').classed('entering',false), 560);
+    }
+    drawConnectors(connL,pos,newFocusId,animate);
+    updateLabels(pos);
+    if(animate){scrollToFocus(pos);if(!sidebarHidden)openSidebarFor(newFocusId);}
+    currentFocusId=newFocusId;
+    rememberNavigation(newFocusId);
+    pendingFocusId=null;
+    transitioning=false;
+    transitionTimer=null;
+  },TOTAL);
+}
+
+function onCardClick(personId) {
+  if (suppressNextCardClick) return;
+  transitionTo(personId, true);
+}
+
+function scrollToFocus(pos) {
+  const c = document.getElementById('tree-container');
+  const sbVisible = (!sidebarHidden && sidebarEl) ? Math.max(0, sidebarEl.offsetWidth - 34) : 0;
+  const availW    = c.clientWidth - sbVisible;
+  const contentW = pos.svgW * treeZoom;
+  const maxLeft = Math.max(0, contentW - c.clientWidth);
+  const desiredLeft = pos.focalCx * treeZoom - Math.max(420, availW) / 2;
+  const scrollLeft = Math.max(0, Math.min(maxLeft, desiredLeft));
+  const focalRowY  = L.PY + L.RH * 2;
+  const contentH = pos.svgH * treeZoom;
+  const maxTop = Math.max(0, contentH - c.clientHeight);
+  const scrollTop  = Math.max(0, Math.min(maxTop, focalRowY * treeZoom - c.clientHeight * 0.30));
+  c.scrollTo({ left: scrollLeft, top: scrollTop, behavior: 'smooth' });
+}
+
+function initDragPan() {
+  const c = document.getElementById('tree-container');
+  if (!c) return;
+  let dragging=false, moved=false, startX=0, startY=0, startLeft=0, startTop=0;
+  c.addEventListener('pointerdown', e => {
+    if (e.button !== 0 || e.target.closest('.card-g,#app-header,#sidebar,#lightbox,button,input,select,textarea')) return;
+    dragging=true; moved=false;
+    startX=e.clientX; startY=e.clientY; startLeft=c.scrollLeft; startTop=c.scrollTop;
+    c.classList.add('panning');
+    c.setPointerCapture?.(e.pointerId);
+  });
+  c.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    const dx=e.clientX-startX, dy=e.clientY-startY;
+    if (Math.abs(dx)+Math.abs(dy)>5) moved=true;
+    c.scrollLeft=startLeft-dx;
+    c.scrollTop=startTop-dy;
+  });
+  const end = e => {
+    if (!dragging) return;
+    dragging=false;
+    c.classList.remove('panning');
+    try { c.releasePointerCapture?.(e.pointerId); } catch(err) {}
+    if (moved) {
+      suppressNextCardClick=true;
+      setTimeout(()=>{ suppressNextCardClick=false; }, 80);
+    }
+  };
+  c.addEventListener('pointerup', end);
+  c.addEventListener('pointercancel', end);
+  c.addEventListener('pointerleave', end);
+}
+
+// ─── SIDEBAR LOGIC ─────────────────────────────────────────────────────────────
+// sidebarHidden: true when user manually closed — stays closed until manually re-opened.
+// When re-opened manually, reverts to auto-open behaviour on every node click.
+let sidebarHidden = false;
+
+const sidebarEl = document.getElementById('sidebar');
+const sbArrow    = document.getElementById('sb-arrow');
+
+function openSidebarFor(personId) {
+  updateSidebar(personId);
+  sidebarEl.classList.add('open');
+  sbArrow.innerHTML = '&#9654;';  // ▶ = "click to close"
+}
+function closeSidebar(manual) {
+  sidebarEl.classList.remove('open');
+  sbArrow.innerHTML = '&#9664;';  // ◀ = "click to open"
+  if (manual) sidebarHidden = true;
+}
+
+document.getElementById('sb-toggle').addEventListener('click', () => {
+  if (sidebarEl.classList.contains('open')) {
+    closeSidebar(true);  // manual close → stays hidden
+  } else {
+    sidebarHidden = false;  // manual open → resume auto mode
+    openSidebarFor(currentFocusId);
+  }
+});
+
+// ─── SIDEBAR CONTENT UPDATE ───────────────────────────────────────────────────
+function updateSidebar(personId) {
+  if (editorActive) return;  // don't overwrite the edit form
+  const person = PMAP[personId];
+  if (!person) return;
+
+  // ── Profile photo ──────────────────────────────────────────────────────────
+  const pr = 64, cx = 72, cy = 72;
+  const sbSvg = d3.select('#sb-photo-svg');
+  sbSvg.selectAll('*').remove();
+  document.querySelectorAll('#sb-photo-wrap .sb-photo-video').forEach(el => el.remove());
+
+  // Background ring matching card colour
+  const bg  = person.g === 'F' ? '#f5e4ee' : '#dde9f3';
+  const rim = person.g === 'F' ? '#b06080' : '#5888a0';
+  sbSvg.append('circle').attr('cx',cx).attr('cy',cy).attr('r',pr+3).attr('fill',bg).attr('stroke',rim).attr('stroke-width',2.5);
+
+  const clipId = 'sb-cp-' + person.id;
+  sbSvg.append('defs').append('clipPath').attr('id',clipId).append('circle').attr('cx',cx).attr('cy',cy).attr('r',pr);
+  sbSvg.append('g').attr('clip-path',`url(#${clipId})`).append('g').attr('transform',`translate(${cx-pr},${cy-pr})`).html(buildFaceSVG(person,pr));
+  sbSvg.append('circle').attr('cx',cx).attr('cy',cy).attr('r',pr).attr('clip-path',`url(#${clipId})`).attr('fill','white');
+  // Sidebar always shows gif when available (focal person = active = portrait animates)
+  const sbImgSrc = person.gif ? person.gif : person.image ? person.image : `${ageGroup(person)}_${person.g.toLowerCase()}.png`;
+  sbSvg.append('image').attr('href',sbImgSrc).attr('x',cx-pr).attr('y',cy-pr).attr('width',pr*2).attr('height',pr*2).attr('clip-path',`url(#${clipId})`).attr('preserveAspectRatio','xMidYMid slice');
+  const videoSrc = personVideoSrc(person);
+  if (videoSrc) {
+    const video = makeVideo(videoSrc, 'sb-photo-video');
+    document.getElementById('sb-photo-wrap').appendChild(video);
+  }
+  sbSvg.append('circle').attr('cx',cx).attr('cy',cy).attr('r',pr).attr('fill','none').attr('stroke',rim).attr('stroke-width',2.5);
+
+  // ── Full name + flags ──────────────────────────────────────────────────────
+  const displayName = person.fullName || `${person.fn} ${person.ln}`;
+  const flags = getFlags(person.nat);
+  document.getElementById('sb-fullname').textContent = flags ? `${displayName}  ${flags}` : displayName;
+
+  // ── Dates + age ────────────────────────────────────────────────────────────
+  // All person-provided fields are run through esc() because lines[] is joined
+  // and assigned to innerHTML. Without esc, a death place like "<img onerror=...>"
+  // would execute. formatDate() returns formatted strings derived from person.b/d
+  // which are likewise untrusted.
+  const now = new Date().getFullYear();
+  const lines = [];
+  if (person.b) {
+    let bl = `${esc(t('born'))} ${esc(formatDate(person.b))}`;
+    if (person.bp) bl += `  ·  ${esc(person.bp)}`;
+    lines.push(bl);
+  }
+  if (person.d) {
+    let dl = `${esc(t('died'))} ${esc(formatDate(person.d))}`;
+    if (person.dp) dl += `  ·  ${esc(person.dp)}`;
+    lines.push(dl);
+  }
+  let ageBadge = '';
+  if (person.b) {
+    const by = birthYear(person.b), dy = person.d ? birthYear(person.d) : now;
+    if (by && dy) {
+      const yrs = dy - by;
+      ageBadge = person.d
+        ? `<span class="sb-age">${esc(t('lived'))} ${yrs} ${esc(t('years'))}</span>`
+        : `<span class="sb-age">${esc(t('age'))} ${yrs} ${esc(t('years'))}</span>`;
+    }
+  }
+  document.getElementById('sb-info').innerHTML = lines.join('<br>') + (ageBadge ? '<br>' + ageBadge : '');
+
+  // ── Biography ──────────────────────────────────────────────────────────────
+  document.getElementById('sb-bio-title').textContent = t('biography');
+  const bioEl = document.getElementById('sb-bio-text');
+  // bio can be a multilingual object {pl,en,es,fr} or a plain string (legacy)
+  const bioText = person.bio
+    ? (typeof person.bio === 'object' ? (person.bio[lang] || person.bio.pl || '') : person.bio)
+    : '';
+  if (bioText) {
+    bioEl.textContent = bioText;
+    bioEl.style.color = '#3a2810';
+    bioEl.style.fontStyle = 'normal';
+  } else {
+    bioEl.textContent = t('bioPlaceholder');
+    bioEl.style.color = '#b8a888';
+    bioEl.style.fontStyle = 'italic';
+  }
+
+  // Inject edit button + add person buttons
+  injectSidebarActions(personId);
+}
+
+// ─── LIGHTBOX ─────────────────────────────────────────────────────────────────
+function openLightbox(src, caption, type) {
+  const isVideo = type === 'video' || isVideoSrc(src);
+  const img = document.getElementById('lb-img');
+  const video = document.getElementById('lb-video');
+  img.style.display = isVideo ? 'none' : 'block';
+  video.style.display = isVideo ? 'block' : 'none';
+  if (isVideo) {
+    img.removeAttribute('src');
+    video.src = src;
+    video.play().catch(()=>{});
+  } else {
+    video.pause();
+    video.removeAttribute('src');
+    img.src = src;
+  }
+  document.getElementById('lb-caption').textContent = caption || '';
+  const lb = document.getElementById('lightbox');
+  lb.style.display = 'flex';
+}
+function closeLightbox() {
+  const video = document.getElementById('lb-video');
+  video.pause();
+  video.removeAttribute('src');
+  document.getElementById('lightbox').style.display = 'none';
+}
+document.getElementById('lb-overlay').addEventListener('click', closeLightbox);
+document.getElementById('lb-close').addEventListener('click', closeLightbox);
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeLightbox();
+    closeHelpTutorial();
+  }
+});
+
+// ─── HELP TUTORIAL ───────────────────────────────────────────────────────────
+let helpStepIndex = 0;
+const HELP_STEP_COUNT = 8;
+
+function openHelpTutorial(step = 0) {
+  const overlay = document.getElementById('help-overlay');
+  if (!overlay) return;
+  overlay.classList.add('open');
+  overlay.setAttribute('aria-hidden', 'false');
+  showHelpStep(step);
+}
+function closeHelpTutorial() {
+  const overlay = document.getElementById('help-overlay');
+  if (!overlay) return;
+  overlay.classList.remove('open');
+  overlay.setAttribute('aria-hidden', 'true');
+}
+function showHelpStep(step) {
+  helpStepIndex = Math.max(0, Math.min(HELP_STEP_COUNT - 1, Number(step) || 0));
+  document.querySelectorAll('.help-step').forEach(el => {
+    el.classList.toggle('active', Number(el.dataset.helpStep) === helpStepIndex);
+  });
+  document.querySelectorAll('.help-step-btn').forEach(btn => {
+    btn.classList.toggle('active', Number(btn.dataset.helpStep) === helpStepIndex);
+  });
+}
+function moveHelpStep(delta) {
+  showHelpStep(helpStepIndex + delta);
+}
+function toggleHelpCheck(btn) {
+  btn.classList.toggle('done');
+}
+function selectHelpAvatar(btn, src) {
+  document.querySelectorAll('.avatar-choice').forEach(b => b.classList.toggle('active', b === btn));
+  const img = document.getElementById('help-avatar-preview');
+  const path = document.getElementById('help-avatar-path');
+  if (img) img.src = src;
+  if (path) path.textContent = src;
+}
+function ensureHelpPracticeFocus() {
+  const fid = currentFocusId || DEFAULT_FOCUS() || PEOPLE[0]?.id;
+  if (!fid || !PMAP[fid]) return null;
+  if (currentFocusId !== fid && !transitioning) transitionTo(fid, false);
+  sidebarHidden = false;
+  openSidebarFor(fid);
+  return fid;
+}
+function startHelpEditPractice() {
+  const fid = ensureHelpPracticeFocus();
+  if (!fid) return;
+  closeHelpTutorial();
+  openEditForm(PMAP[fid] ? {...PMAP[fid]} : null, null);
+}
+function startHelpAddPractice(type) {
+  const fid = ensureHelpPracticeFocus();
+  if (!fid) return;
+  closeHelpTutorial();
+  startAddPerson(type, fid);
+}
+function startHelpPracticeTree() {
+  enterLearningTree(false);
+}
+
+// ─── LANGUAGE SWITCHER ────────────────────────────────────────────────────────
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    lang = btn.dataset.lang;
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b === btn));
+    document.getElementById('app-subtitle').textContent = t('subtitle');
+    document.getElementById('family-label').textContent = t('family');
+    updateCoverText();
+    // Language change doesn't affect layout — only label text. Reuse lastLayout
+    // instead of rebuilding the hourglass (was burning a full recompute every
+    // language switch even though positions are identical).
+    if (lastLayout) updateLabels(lastLayout);
+    // Re-render sidebar content in new language (if open)
+    if (sidebarEl.classList.contains('open') && currentFocusId) {
+      updateSidebar(currentFocusId);
+    }
+    setTimeout(setAppChromeMetrics, 20);
+  });
+});
+
+// ─── EDITOR MODULE ────────────────────────────────────────────────────────────
+
+// ── Link to existing person (instead of creating new) ────────────────────────
+// Used when the person being connected (parent/child/spouse) already exists in the tree.
+// ── Parent slot helper ────────────────────────────────────────────────────────
+// Assigns a parent to the correct slot by gender, ignoring stale/invalid IDs.
+// Returns 'ok' on success, 'filled' if the gender slot is already occupied by a valid person.
+function applyParentLink(childPerson, parentId, parentGender) {
+  // Start from only the VALID existing parents (those still in PMAP)
+  const validP = (childPerson.p || []).filter(id => id && PMAP[id]);
+  const hasValidMale   = validP.some(id => PMAP[id].g === 'M');
+  const hasValidFemale = validP.some(id => PMAP[id].g === 'F');
+
+  if (parentGender === 'M' && hasValidMale)   return 'filled';
+  if (parentGender === 'F' && hasValidFemale) return 'filled';
+
+  // Build new p[]: father first (index 0), mother second (index 1)
+  const father = parentGender === 'M' ? parentId : (validP.find(id => PMAP[id].g === 'M') || null);
+  const mother = parentGender === 'F' ? parentId : (validP.find(id => PMAP[id].g === 'F') || null);
+
+  if (father && mother) childPerson.p = [father, mother];
+  else if (father)      childPerson.p = [father];
+  else if (mother)      childPerson.p = [mother];
+  else                  childPerson.p = [parentId];
+
+  return 'ok';
+}
+
+// ── Circular ancestry check ───────────────────────────────────────────────────
+// Returns true if 'ancestorId' is already an ancestor of 'personId'.
+// Prevents wiring A as parent of B when A is already B's descendant.
+function isAncestor(ancestorId, personId, visited = new Set()) {
+  if (ancestorId === personId) return true;
+  if (visited.has(personId)) return false;
+  visited.add(personId);
+  const p = PMAP[personId];
+  if (!p || !p.p) return false;
+  return p.p.some(pid => pid && isAncestor(ancestorId, pid, visited));
+}
+
+// ── Duplicate detection ───────────────────────────────────────────────────────
+// Returns any existing person matching fn + ln + birth year (case-insensitive).
+// Excludes the person being edited (originalId) to allow saving without change.
+function findDuplicate(fn, ln, bRaw, excludeId) {
+  const fnL = fn.toLowerCase(), lnL = ln.toLowerCase();
+  const byear = bRaw ? String(bRaw).split('-')[0] : null;
+  return PEOPLE.find(p => {
+    if (p.id === excludeId) return false;
+    if (p.fn.toLowerCase() !== fnL || p.ln.toLowerCase() !== lnL) return false;
+    if (!byear) return true; // name match alone is enough to warn
+    const pByear = p.b ? String(p.b).split('-')[0] : null;
+    return !pByear || pByear === byear;
+  }) || null;
+}
+
+// ── Age sanity check ─────────────────────────────────────────────────────────
+// Returns a warning string if dates are suspicious, or null if all fine.
+// Checks: death before birth, parent born after child.
+function ageSanityWarning(person, parentIds) {
+  const warnings = [];
+  const by = person.b ? parseInt(String(person.b).split('-')[0], 10) : null;
+  const dy = person.d ? parseInt(String(person.d).split('-')[0], 10) : null;
+  if (by && dy && dy < by) warnings.push(`Rok śmierci (${dy}) wcześniej niż rok urodzenia (${by}). / Death year (${dy}) before birth year (${by}).`);
+  (parentIds || []).forEach(pid => {
+    const par = PMAP[pid]; if (!par) return;
+    const pby = par.b ? parseInt(String(par.b).split('-')[0], 10) : null;
+    if (by && pby && pby >= by) warnings.push(`${par.fn} ${par.ln} urodzony/a ${pby} — później niż dziecko (${by}). / ${par.fn} ${par.ln} born ${pby}, same year or after child (${by}).`);
+  });
+  return warnings.length ? warnings.join('\n') : null;
+}
+
+function linkExistingPerson() {
+  const selectedId = document.getElementById('ef-link-select')?.value;
+  if (!selectedId) { showEditError('Wybierz osobę z listy / Select a person from the list.'); return; }
+  const spec = editorConnectionSpec;
+  if (!spec) return;
+
+  const anchor   = PMAP[spec.anchorId];   // the person we're adding FROM
+  const existing = PMAP[selectedId];       // the person already in the tree
+  if (!anchor || !existing) return;
+
+  if (spec.type === 'parent') {
+    if (isAncestor(spec.anchorId, selectedId)) {
+      showEditError(`Błąd kołowy: ${existing.fn} ${existing.ln} jest już potomkiem tej osoby.\nCircular: ${existing.fn} ${existing.ln} is already a descendant.`);
+      return;
+    }
+    const result = applyParentLink(anchor, selectedId, existing.g);
+    if (result === 'filled') { showEditError('Rodzic tej płci już istnieje / Parent of this gender already linked.'); return; }
+
+  } else if (spec.type === 'child') {
+    if (isAncestor(selectedId, spec.anchorId)) {
+      showEditError(`Błąd kołowy: ${anchor.fn} ${anchor.ln} jest już potomkiem tej osoby.\nCircular: ${anchor.fn} ${anchor.ln} is already a descendant.`);
+      return;
+    }
+    const result = applyParentLink(existing, spec.anchorId, anchor.g);
+    if (result === 'filled') { showEditError('Ta osoba już ma rodzica tej płci / Parent of this gender already linked.'); return; }
+
+  } else if (spec.type === 'spouse') {
+    if (selectedId === spec.anchorId) { showEditError('Osoba nie może być własnym małżonkiem. / A person cannot be their own spouse.'); return; }
+    if (!anchor.s.includes(selectedId))      anchor.s   = [...anchor.s,   selectedId];
+    if (!existing.s.includes(spec.anchorId)) existing.s = [...existing.s, spec.anchorId];
+  }
+
+  rebuildPMAP();
+  savePeople();
+  editorActive = false;
+  editorConnectionSpec = null;
+  restoreSidebarView();
+  const fid = currentFocusId;
+  currentFocusId = null;
+  sidebarReturnId = fid;
+  transitionTo(fid, false);
+  setTimeout(() => {
+    sidebarReturnId = null;
+    if (!sidebarHidden && fid) { updateSidebar(fid); sidebarEl.classList.add('open'); }
+  }, 100);
+}
+// ── Reset to data file ─────────────────────────────────────────────────────────
+function resetToDataFile() {
+  if (learningMode) {
+    resetLearningTree();
+    return;
+  }
+  if (!confirm('Przywrócić oryginalne dane z pliku?\nReset to original data file?\n\nWszystkie zmiany wprowadzone w przeglądarce zostaną utracone.\nAll browser edits will be lost.')) return;
+  try { localStorage.removeItem('eliadora_people'); } catch(e) {}
+  location.reload();
+}
+
+// ── Delete a person from the tree ─────────────────────────────────────────────
+function deletePerson(personId) {
+  const person = PMAP[personId];
+  if (!person) return;
+
+  // Protect the default focal person — deleting them breaks the whole tree
+  if (personId === DEFAULT_FOCUS()) {
+    alert(`Nie można usunąć ${person.fn} ${person.ln} — ta osoba jest główną osobą drzewa (defaultFocus w pliku danych).\n\nCannot delete ${person.fn} ${person.ln} — this person is the tree's default focus.`);
+    return;
+  }
+
+  const name = `${person.fn} ${person.ln}`;
+  // Count children who will lose a parent
+  const childrenAffected = PEOPLE.filter(p => (p.p || []).includes(personId));
+  const childWarn = childrenAffected.length
+    ? `\n\n⚠ ${childrenAffected.length} osób straci rodzica / ${childrenAffected.length} person(s) will lose a parent:\n${childrenAffected.map(c => `  ${c.fn} ${c.ln}`).join('\n')}`
+    : '';
+
+  if (!confirm(`Usunąć ${name} z drzewa?\nDelete ${name} from the tree?${childWarn}\n\nTej operacji nie można cofnąć. / This cannot be undone.`)) return;
+
+  PEOPLE.forEach(p => {
+    if (p.p) p.p = p.p.filter(id => id !== personId);
+    if (p.s) p.s = p.s.filter(id => id !== personId);
+  });
+  const idx = PEOPLE.findIndex(p => p.id === personId);
+  if (idx !== -1) PEOPLE.splice(idx, 1);
+  rebuildPMAP(); savePeople();
+  const df = DEFAULT_FOCUS();
+  const newFocal = PMAP[df] ? df : PEOPLE[0]?.id;
+  if (newFocal) { currentFocusId = null; restoreSidebarView(); transitionTo(newFocal, false); }
+}
+
+// ── Unlink a relationship without deleting either person ──────────────────────
+function unlinkRelationship(personId, otherId, type) {
+  const person = PMAP[personId], other = PMAP[otherId];
+  if (!person || !other) return;
+  if (type === 'parent') {
+    person.p = (person.p || []).filter(id => id !== otherId);
+  } else if (type === 'spouse') {
+    person.s = (person.s || []).filter(id => id !== otherId);
+    other.s  = (other.s  || []).filter(id => id !== personId);
+  }
+  rebuildPMAP(); savePeople();
+  restoreSidebarView();
+  const fid = currentFocusId; currentFocusId = null;
+  transitionTo(fid, false);
+  setTimeout(() => { if (!sidebarHidden && fid) { updateSidebar(fid); sidebarEl.classList.add('open'); } }, 100);
+}
+
+// Build a persistence-safe copy of PEOPLE: strip data: URLs from media fields,
+// because base64-encoded videos (up to 8 MB each) quickly exceed the ~5 MB
+// localStorage quota and cause savePeople to fail silently. Users who want
+// videos in their tree should put the file alongside the HTML and reference
+// it by relative path (e.g. "media/portret.mp4") — that path persists fine.
+function buildSavable(people) {
+  return people.map(p => {
+    const copy = {...p};
+    for (const f of ['image', 'gif', 'video', 'mp4']) {
+      if (typeof copy[f] === 'string' && copy[f].startsWith('data:')) {
+        delete copy[f];
+      }
+    }
+    return copy;
+  });
+}
+
+function savePeople() {
+  const savable = buildSavable(PEOPLE);
+  try {
+    localStorage.setItem(activeStorageKey, JSON.stringify(savable));
+  } catch(e) {
+    // Most common cause: QuotaExceededError when too many embedded portraits
+    // (or just lots of bios in 4 languages × many people) overflow the quota.
+    const msg = (e && e.name === 'QuotaExceededError')
+      ? 'Pamięć przeglądarki została wypełniona. Zmiany NIE zostały zapisane.\n\nNajczęstsza przyczyna: zbyt dużo plików wideo/obrazów wgranych jako pliki (data:...). Lepiej wpisz ścieżki względne, np. media/portret.mp4, zamiast wgrywać duże pliki.\n\nMożesz też kliknąć "↓ JS" aby zapisać dane do pliku ręcznie.'
+      : 'Nie udało się zapisać do pamięci przeglądarki: ' + (e && e.message ? e.message : 'nieznany błąd');
+    alert(msg);
+  }
+  rebuildPersonSearch();
+  updateOrphanBtn();
+}
+
+function exportDataFile() {
+  const content = [
+    '// eliadora-data.js — exported from Eliadora',
+    '// For field documentation see the original file.',
+    '',
+    'window.ELIADORA_DATA = {',
+    `  familyName:   ${JSON.stringify(FAMILY_NAME())},`,
+    `  defaultFocus: ${JSON.stringify(DEFAULT_FOCUS())},`,
+    '  people:',
+    JSON.stringify(PEOPLE, null, 2).split('\n').map(l => '  ' + l).join('\n'),
+    '};',
+    '',
+  ].join('\n');
+  const a = Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(new Blob([content], {type:'text/javascript'})),
+    download: 'eliadora-data.js',
+  });
+  a.click(); URL.revokeObjectURL(a.href);
+}
+
+// ── Editor state ─────────────────────────────────────────────────────────────
+let editorActive = false;
+let editorConnectionSpec = null; // { type: 'parent'|'child'|'spouse', anchorId }
+let editorSelectedNat = [];
+let editorActiveBioTab = 'pl';
+let sidebarReturnId = null; // person to show in sidebar after cancel/save
+
+const NAT_OPTIONS = [
+  {code:'PL',flag:'🇵🇱',name:'Polska'},
+  {code:'DE',flag:'🇩🇪',name:'Niemcy'},
+  {code:'CZ',flag:'🇨🇿',name:'Czechy'},
+  {code:'SK',flag:'🇸🇰',name:'Słowacja'},
+  {code:'UA',flag:'🇺🇦',name:'Ukraina'},
+  {code:'BY',flag:'🇧🇾',name:'Białoruś'},
+  {code:'LT',flag:'🇱🇹',name:'Litwa'},
+  {code:'RU',flag:'🇷🇺',name:'Rosja'},
+];
+const BIO_LANGS = ['pl','en','es','fr'];
+
+// ── Inject edit + add buttons into view mode sidebar ─────────────────────────
+function injectSidebarActions(personId) {
+  const inner = document.getElementById('sb-inner');
+  if (!inner) return;
+  inner.querySelectorAll('.sb-edit-btn,.sb-add-section').forEach(el => el.remove());
+
+  // Edit pencil button appended to name
+  const nameEl = document.getElementById('sb-fullname');
+  if (nameEl) {
+    const btn = document.createElement('button');
+    btn.className = 'sb-edit-btn';
+    btn.title = t('edit');
+    btn.textContent = '✏';
+    btn.onclick = () => openEditForm(PMAP[personId] ? {...PMAP[personId]} : null, null);
+    nameEl.appendChild(btn);
+  }
+
+  // Add person section — view mode only shows "add" options
+  const person = PMAP[personId];
+  const parentCount = person?.p?.filter(id => id && PMAP[id]).length || 0;
+  const eid = escAttr(personId);
+  const addSec = document.createElement('div');
+  addSec.className = 'sb-add-section';
+  addSec.innerHTML = `
+    <div class="sb-form-section-title">${esc(t('addPerson'))}</div>
+    <div class="sb-add-row">
+      ${parentCount < 2 ? `<button class="sb-add-btn" onclick="startAddPerson('parent','${eid}')">${esc(t('addParent'))}</button>` : ''}
+      <button class="sb-add-btn" onclick="startAddPerson('child','${eid}')">${esc(t('addChild'))}</button>
+      <button class="sb-add-btn" onclick="startAddPerson('spouse','${eid}')">${esc(t('addSpouse'))}</button>
+    </div>`;
+  inner.appendChild(addSec);
+}
+
+// ── Start "add new person via connection" flow ────────────────────────────────
+function startAddPerson(type, anchorId) {
+  editorConnectionSpec = { type, anchorId };
+  const anchor = PMAP[anchorId];
+  // Pre-set gender opposite to anchor for spouse, otherwise M as default
+  const defaultG = type === 'spouse' ? (anchor?.g === 'M' ? 'F' : 'M') : 'M';
+  openEditForm({ fn:'', ln:'', b:'', d:null, g:defaultG, p:[], s:[], bio:{} }, { type, anchorId });
+}
+
+// ── Build and render the edit form in the sidebar ────────────────────────────
+function openEditForm(person, connectionSpec) {
+  editorActive = true;
+  editorConnectionSpec = connectionSpec;
+  editorSelectedNat = person.nat ? (Array.isArray(person.nat) ? [...person.nat] : [person.nat]) : [];
+  editorActiveBioTab = lang;
+  // Remember who the sidebar should return to after cancel/save
+  sidebarReturnId = connectionSpec ? connectionSpec.anchorId : (person.id || currentFocusId);
+
+  const inner = document.getElementById('sb-inner');
+  const isNew = !person.id || !PMAP[person.id];
+  const bio = person.bio || {};
+
+  // Context label + "link existing" section (only for add-via-connection flows)
+  let ctxHtml = '';
+  if (connectionSpec) {
+    const anchor = PMAP[connectionSpec.anchorId];
+    const aName = anchor ? `${anchor.fn} ${anchor.ln}` : '?';
+    const ctxKey = `addingAs${connectionSpec.type.charAt(0).toUpperCase()}${connectionSpec.type.slice(1)}`;
+    // Build dropdown of all existing people (sorted by name), excluding the anchor itself
+    const options = PEOPLE
+      .filter(p => p.id !== connectionSpec.anchorId)
+      .sort((a,b) => (a.fn+a.ln).localeCompare(b.fn+b.ln))
+      .map(p => `<option value="${esc(p.id)}">${esc(p.fn)} ${esc(p.ln)}${p.b?' ('+String(p.b).slice(0,4)+')':''}</option>`)
+      .join('');
+    ctxHtml = `
+      <div class="sb-context-label">${esc(t(ctxKey))} <strong>${esc(aName)}</strong></div>
+      <div class="sb-form-section">
+        <div class="sb-form-section-title">Połącz z istniejącą osobą / Link existing</div>
+        <div style="display:flex;gap:7px;align-items:center">
+          <select class="sb-input" id="ef-link-select" style="flex:1">
+            <option value="">— wybierz / select —</option>
+            ${options}
+          </select>
+          <button type="button" class="sb-add-btn" style="flex:0;white-space:nowrap;padding:6px 12px"
+            onclick="linkExistingPerson()">Połącz →</button>
+        </div>
+        <div style="margin:10px 0;text-align:center;color:#b8a888;font-size:10px;letter-spacing:1px">— LUB UTWÓRZ NOWĄ / OR CREATE NEW —</div>
+      </div>`;
+  }
+
+  inner.innerHTML = `
+    <div class="sb-form-header">
+      <button class="sb-form-back" onclick="cancelEdit()" title="${esc(t('cancel'))}">&#8592;</button>
+      <span class="sb-form-title">${isNew ? esc(t('newPerson')) : `${esc(t('editing'))}: ${esc(person.fn||'')} ${esc(person.ln||'')}`}</span>
+    </div>
+    ${ctxHtml}
+
+    <div class="sb-form-section">
+      <div class="sb-form-section-title">${esc(t('nameSection'))}</div>
+      <div class="sb-field">
+        <label class="sb-label">${esc(t('firstName'))} <span style="color:#b8a888">(${esc(t('onCard'))})</span></label>
+        <input class="sb-input" id="ef-fn" value="${esc(person.fn||'')}">
+      </div>
+      <div class="sb-field">
+        <label class="sb-label">${esc(t('lastName'))} <span style="color:#b8a888">(${esc(t('onCard'))})</span></label>
+        <input class="sb-input" id="ef-ln" value="${esc(person.ln||'')}">
+      </div>
+      <div class="sb-field">
+        <label class="sb-label">${esc(t('fullNameField'))}</label>
+        <input class="sb-input" id="ef-fullName" value="${esc(person.fullName||'')}" placeholder="${esc(t('fullNamePlaceholder'))}">
+      </div>
+    </div>
+
+    <div class="sb-form-section">
+      <div class="sb-form-section-title">${esc(t('genderSection'))}</div>
+      <div class="sb-gender-row">
+        <label class="sb-radio-label"><input type="radio" name="ef-g" value="M" ${person.g==='M'?'checked':''}> ${esc(t('male'))}</label>
+        <label class="sb-radio-label"><input type="radio" name="ef-g" value="F" ${person.g==='F'?'checked':''}> ${esc(t('female'))}</label>
+      </div>
+    </div>
+
+    <div class="sb-form-section">
+      <div class="sb-form-section-title">${esc(t('datesSection'))}</div>
+      <div class="sb-field">
+        <label class="sb-label">${esc(t('born'))} <span style="color:#b8a888;font-size:9px">YYYY · YYYY-MM · YYYY-MM-DD</span></label>
+        <input class="sb-input" id="ef-b" value="${esc(String(person.b||''))}" placeholder="1982-04-15">
+      </div>
+      <div class="sb-field">
+        <label class="sb-label">${esc(t('birthPlace'))}</label>
+        <input class="sb-input" id="ef-bp" value="${esc(person.bp||'')}" placeholder="Warszawa, Polska">
+      </div>
+      <div class="sb-field">
+        <label class="sb-label">${esc(t('died'))} <span style="color:#b8a888;font-size:9px">${esc(t('leaveEmpty'))}</span></label>
+        <input class="sb-input" id="ef-d" value="${esc(String(person.d||''))}">
+      </div>
+      <div class="sb-field">
+        <label class="sb-label">${esc(t('deathPlace'))}</label>
+        <input class="sb-input" id="ef-dp" value="${esc(person.dp||'')}">
+      </div>
+    </div>
+
+    <div class="sb-form-section">
+      <div class="sb-form-section-title">${esc(t('nationalitySection'))}</div>
+      <div class="sb-nat-row" id="ef-nat-row">
+        ${NAT_OPTIONS.map(n=>`<button class="sb-nat-btn${editorSelectedNat.includes(n.code)?' active':''}" data-code="${esc(n.code)}" onclick="toggleEditorNat('${escAttr(n.code)}')" type="button" title="${escAttr(n.name)}" aria-label="${escAttr(n.name)}">${n.flag} ${esc(n.name)}</button>`).join('')}
+      </div>
+    </div>
+
+    <div class="sb-form-section">
+      <div class="sb-form-section-title">${esc(t('mediaSection'))}</div>
+      <div class="sb-field">
+        <label class="sb-label">${esc(t('imageField'))} <span style="color:#b8a888;font-size:9px">image_name.jpg</span></label>
+        <input class="sb-input" id="ef-image" value="${esc(person.image||'')}">
+        <div class="media-path-tools" aria-label="Folder zdjęcia">
+          <button class="media-path-btn" type="button" onclick="setImageFolderPrefix('p/')">p/ portrety</button>
+          <button class="media-path-btn" type="button" onclick="setImageFolderPrefix('')">folder główny</button>
+          <button class="media-path-btn" type="button" onclick="setImageFolderPrefix('assets/')">assets/</button>
+        </div>
+        <input class="sb-input" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/jpeg,image/png,image/webp,image/gif" onchange="loadImageFile(this,'ef-image')" style="margin-top:6px;padding:5px">
+        <div class="sb-helper" id="ef-image-status">Najlepiej włóż portret do folderu p i wpisz ścieżkę względną, np. p/ola.png. Przycisk wyboru tylko pomaga przepisać nazwę pliku.</div>
+      </div>
+      <div class="sb-field">
+        <label class="sb-label">${esc(t('gifField'))} <span style="color:#b8a888;font-size:9px">gif_name.gif</span></label>
+        <input class="sb-input" id="ef-gif" value="${esc(person.gif||'')}">
+      </div>
+      <div class="sb-field">
+        <label class="sb-label">${esc(t('videoField'))} <span style="color:#b8a888;font-size:9px">media/portret.mp4</span></label>
+        <input class="sb-input" id="ef-video" value="${esc(person.video||person.mp4||'')}">
+        <input class="sb-input" type="file" accept=".mp4,.webm,.mov,.m4v,video/mp4,video/webm,video/quicktime" onchange="loadVideoFile(this,'ef-video')" style="margin-top:6px;padding:5px">
+        <div class="sb-helper" id="ef-video-status">Możesz wskazać MP4 z dysku albo wpisać ścieżkę, np. media/portret.mp4.</div>
+      </div>
+    </div>
+
+    <div class="sb-form-section">
+      <div class="sb-form-section-title">${esc(t('biography'))}</div>
+      <div class="sb-bio-tabs">
+        ${BIO_LANGS.map(l=>`<button class="sb-bio-tab${editorActiveBioTab===l?' active':''}" onclick="switchEditorBioTab('${escAttr(l)}')" type="button">${esc(l.toUpperCase())}</button>`).join('')}
+      </div>
+      ${BIO_LANGS.map(l=>`<textarea class="sb-textarea sb-bio-lang" id="ef-bio-${esc(l)}" style="display:${editorActiveBioTab===l?'block':'none'};border-radius:0 4px 4px 4px" placeholder="${esc(t('bioPlaceholder'))}">${esc(bio[l]||'')}</textarea>`).join('')}
+    </div>
+
+    <div id="ef-error" style="display:none" class="sb-error"></div>
+
+    <div class="sb-form-actions">
+      <button class="sb-btn-save" onclick="submitEdit('${escAttr(person.id||'')}')">${esc(isNew ? t('addToTree') : t('saveChanges'))}</button>
+      <button class="sb-btn-cancel" onclick="cancelEdit()">${esc(t('cancel'))}</button>
+    </div>
+    <p class="sb-storage-note">${esc(t('localStorageNote'))}</p>
+
+    ${!isNew ? `
+    <div class="sb-form-section" style="margin-top:8px">
+      <div class="sb-form-section-title" style="color:#a03020">Zmień połączenie / Change</div>
+      <div class="sb-add-row" style="margin-bottom:8px">
+        ${(person.p||[]).filter(id=>id&&PMAP[id]).map(pid=>{
+          const par=PMAP[pid];
+          return `<button class="sb-add-btn" style="background:#fdf0ee;border-color:#e0a090;color:#803020;font-size:10px" onclick="unlinkRelationship('${escAttr(person.id)}','${escAttr(pid)}','parent')">✕ ${esc(par.fn)} ${esc(par.ln)}</button>`;
+        }).join('')}
+        ${(person.s||[]).filter(id=>id&&PMAP[id]).map(sid=>{
+          const sp=PMAP[sid];
+          return `<button class="sb-add-btn" style="background:#fdf0ee;border-color:#e0a090;color:#803020;font-size:10px" onclick="unlinkRelationship('${escAttr(person.id)}','${escAttr(sid)}','spouse')">✕ ♥ ${esc(sp.fn)} ${esc(sp.ln)}</button>`;
+        }).join('')}
+      </div>
+      ${person.id !== DEFAULT_FOCUS() ? `
+      <div class="sb-form-section-title" style="color:#a03020;margin-top:10px">Usuń osobę / Delete</div>
+      <div class="sb-add-row">
+        <button class="sb-add-btn" style="background:#fdf0ee;border-color:#c03020;color:#803020" onclick="deletePerson('${escAttr(person.id)}')">🗑 ${esc(person.fn)} ${esc(person.ln)}</button>
+      </div>` : ''}
+    </div>` : ''}
+  `;
+}
+
+// ── Form helpers ─────────────────────────────────────────────────────────────
+// esc() and escAttr() are defined earlier (near top of script).
+
+function toggleEditorNat(code) {
+  const i = editorSelectedNat.indexOf(code);
+  if (i === -1) editorSelectedNat.push(code); else editorSelectedNat.splice(i,1);
+  document.querySelectorAll('#ef-nat-row .sb-nat-btn').forEach(b => b.classList.toggle('active', editorSelectedNat.includes(b.dataset.code)));
+}
+
+function switchEditorBioTab(l) {
+  editorActiveBioTab = l;
+  document.querySelectorAll('.sb-bio-lang').forEach(ta => { ta.style.display = ta.id===`ef-bio-${l}`?'block':'none'; });
+  document.querySelectorAll('.sb-bio-tab').forEach(b => b.classList.toggle('active', b.textContent.trim().toLowerCase()===l));
+}
+
+// ── Sidebar skeleton ─────────────────────────────────────────────────────────
+// openEditForm replaces sb-inner entirely. We need to restore the skeleton
+// before updateSidebar can work again.
+const SIDEBAR_SKELETON = `
+  <div id="sb-photo-wrap">
+    <svg id="sb-photo-svg" width="144" height="144" viewBox="0 0 144 144"></svg>
+  </div>
+  <h2 id="sb-fullname"></h2>
+  <div id="sb-info"></div>
+  <div class="sb-section">
+    <div class="sb-section-title" id="sb-bio-title"></div>
+    <p id="sb-bio-text"></p>
+  </div>
+`;
+function restoreSidebarView() {
+  document.getElementById('sb-inner').innerHTML = SIDEBAR_SKELETON;
+}
+
+function cancelEdit() {
+  editorActive = false;
+  editorConnectionSpec = null;
+  const returnId = sidebarReturnId || currentFocusId;
+  sidebarReturnId = null;
+  restoreSidebarView();
+  if (returnId && PMAP[returnId]) {
+    updateSidebar(returnId);
+    if (!sidebarHidden) sidebarEl.classList.add('open');
+  }
+}
+
+function showEditError(msg) {
+  const el = document.getElementById('ef-error');
+  if (el) { el.style.display='block'; el.textContent=msg; }
+}
+
+// ── Submit edit / add ─────────────────────────────────────────────────────────
+function submitEdit(originalId) {
+  const fn = document.getElementById('ef-fn')?.value.trim();
+  const ln = document.getElementById('ef-ln')?.value.trim();
+  const g  = document.querySelector('input[name="ef-g"]:checked')?.value;
+
+  if (!fn) { showEditError(t('errFirstName')); return; }
+  if (!ln) { showEditError(t('errLastName'));  return; }
+  if (!g)  { showEditError(t('errGender'));    return; }
+
+  const bRaw = document.getElementById('ef-b')?.value.trim() || '';
+  const dRaw = document.getElementById('ef-d')?.value.trim() || '';
+
+  // ── Duplicate detection ───────────────────────────────────────────────────
+  const isNew = !originalId || !PMAP[originalId];
+  if (isNew) {
+    const dup = findDuplicate(fn, ln, bRaw, originalId);
+    if (dup) {
+      const dupInfo = `${dup.fn} ${dup.ln}${dup.b ? ' ('+String(dup.b).split('-')[0]+')' : ''}`;
+      if (!confirm(`Uwaga: osoba o tym imieniu już istnieje w drzewie:\n${dupInfo}\n\nWarning: a person with this name already exists:\n${dupInfo}\n\nKontynuować mimo to? / Continue anyway?`)) return;
+    }
+  }
+
+  // ── Age sanity (warning only, user can proceed) ───────────────────────────
+  // Determine which parent IDs the new/edited person will have after save.
+  let pendingParentIds = [];
+  if (isNew && editorConnectionSpec) {
+    if (editorConnectionSpec.type === 'child') {
+      // New person becomes a child of the anchor → anchor is their parent
+      pendingParentIds = [editorConnectionSpec.anchorId];
+    }
+    // 'parent' and 'spouse' types don't add parents to the new person
+  } else if (!isNew) {
+    // Editing existing person — keep their current parents for the check
+    pendingParentIds = [...(PMAP[originalId]?.p || [])];
+  }
+  const ageWarn = ageSanityWarning({b: bRaw, d: dRaw}, pendingParentIds);
+  if (ageWarn && !confirm(`⚠ Ostrzeżenie o datach / Date warning:\n${ageWarn}\n\nZapisać mimo to? / Save anyway?`)) return;
+
+  // Build multilingual bio (only store non-empty)
+  const bio = {};
+  BIO_LANGS.forEach(l => { const v = document.getElementById(`ef-bio-${l}`)?.value.trim(); if(v) bio[l]=v; });
+
+  const nat = editorSelectedNat.length === 0 ? undefined
+            : editorSelectedNat.length === 1 ? editorSelectedNat[0]
+            : [...editorSelectedNat];
+
+  const newId = isNew ? ('p' + Date.now().toString(36) + Math.random().toString(36).slice(2,4)) : originalId;
+
+  // Build updated record (preserve relational fields from original)
+  const orig = PMAP[originalId] || {};
+  const updated = {
+    id: newId, fn, ln, g,
+    ...(document.getElementById('ef-fullName')?.value.trim() ? { fullName: document.getElementById('ef-fullName').value.trim() } : {}),
+    ...(bRaw ? { b: bRaw } : {}),
+    ...(dRaw ? { d: dRaw } : { d: null }),
+    ...(document.getElementById('ef-bp')?.value.trim() ? { bp: document.getElementById('ef-bp').value.trim() } : {}),
+    ...(document.getElementById('ef-dp')?.value.trim() ? { dp: document.getElementById('ef-dp').value.trim() } : {}),
+    ...(nat !== undefined ? { nat } : {}),
+    ...(document.getElementById('ef-image')?.value.trim() ? { image: document.getElementById('ef-image').value.trim() } : {}),
+    ...(document.getElementById('ef-gif')?.value.trim()   ? { gif:   document.getElementById('ef-gif').value.trim()   } : {}),
+    ...(document.getElementById('ef-video')?.value.trim() ? { video: document.getElementById('ef-video').value.trim() } : {}),
+    ...(Object.keys(bio).length ? { bio } : {}),
+    // Relational fields: preserve existing, will be updated below for new connections
+    p: [...(orig.p || [])],
+    s: [...(orig.s || [])],
+  };
+
+  if (isNew && editorConnectionSpec) {
+    const spec = editorConnectionSpec;
+    const anchor = PMAP[spec.anchorId];
+    if (anchor) {
+      if (spec.type === 'child') {
+        // New person is a child of anchor — set anchor as the known parent
+        updated.p = [spec.anchorId];
+
+      } else if (spec.type === 'parent') {
+        // New person becomes a parent of anchor using gender-based slot
+        if (isAncestor(spec.anchorId, newId)) {
+          showEditError('Błąd kołowy: ta osoba jest już potomkiem kotwicy.\nCircular ancestry detected.'); return;
+        }
+        const result = applyParentLink(anchor, newId, g);
+        if (result === 'filled') { showEditError('Rodzic tej płci już istnieje / Parent of this gender already exists.'); return; }
+
+      } else if (spec.type === 'spouse') {
+        // New person becomes a spouse of anchor
+        anchor.s = [...(anchor.s || []), newId];
+        updated.s = [spec.anchorId];
+      }
+    }
+  }
+
+  if (isNew) {
+    PEOPLE.push(updated);
+  } else {
+    const idx = PEOPLE.findIndex(p => p.id === originalId);
+    if (idx !== -1) {
+      // Preserve p[] and s[] from original (not editable in this form)
+      PEOPLE[idx] = { ...updated, p: orig.p || [], s: orig.s || [] };
+    }
+  }
+
+  rebuildPMAP();
+  savePeople();
+  editorActive = false;
+  editorConnectionSpec = null;
+  restoreSidebarView();
+
+  // Force a full re-render. transitionTo() blocks if focusId hasn't changed,
+  // so we reset currentFocusId to null to bypass that guard.
+  const fid = currentFocusId;
+  currentFocusId = null;
+  sidebarReturnId = fid;
+  transitionTo(fid, false);
+  setTimeout(() => {
+    sidebarReturnId = null;
+    if (!sidebarHidden && fid) { updateSidebar(fid); sidebarEl.classList.add('open'); }
+  }, 100);
+}
+// ─── ORPHAN DETECTION ─────────────────────────────────────────────────────────
+function findOrphans() {
+  const referenced = new Set();
+  PEOPLE.forEach(p => {
+    (p.p||[]).forEach(id => referenced.add(id));
+    (p.s||[]).forEach(id => referenced.add(id));
+  });
+  return PEOPLE.filter(p =>
+    !referenced.has(p.id) &&
+    !(p.p||[]).some(id => PMAP[id]) &&
+    !(p.s||[]).some(id => PMAP[id])
+  );
+}
+function updateOrphanBtn() {
+  const orphans = findOrphans();
+  const btn = document.getElementById('orphan-btn');
+  if (!btn) return;
+  if (!orphans.length) { btn.style.display='none'; return; }
+  btn.style.display = 'block';
+  btn.textContent = `⚠ ${orphans.length} osób bez połączeń`;
+}
+function showOrphans() {
+  const orphans = findOrphans();
+  if (!orphans.length) return;
+  const list = orphans.map((p,i)=>`${i+1}. ${p.fn} ${p.ln}${p.b?' ('+String(p.b).slice(0,4)+')':''}`).join('\n');
+  if (confirm(`Osoby bez połączeń z drzewem:\n\n${list}\n\nKliknij OK aby przejść do pierwszej osoby.\nAby usunąć: otwórz ✏ edycję i użyj przycisku Usuń.`)) {
+    transitionTo(orphans[0].id, true);
+  }
+}
+
+// ─── BOOK COVER ───────────────────────────────────────────────────────────────
+// Cover is shown only on first visit (tracked in localStorage). After it animates
+// open, it stays hidden; user can re-summon it via the 📖 button in the header.
+const COVER_SEEN_KEY = 'eliadora_cover_seen';
+
+function updateCoverText() {
+  const fn = FAMILY_NAME();
+  const familyEl = document.querySelector('[data-family]');
+  if (familyEl) familyEl.textContent = fn || '';
+  const subEl = document.querySelector('[data-cover-subtitle]');
+  if (subEl) subEl.textContent = t('coverSubtitle');
+  const openEl = document.querySelector('[data-cover-open]');
+  if (openEl) openEl.textContent = t('coverOpen');
+}
+
+function showCover() {
+  // Manual cover — slide in (no localStorage write, doesn't change "seen" state)
+  updateCoverText();
+  const cv = document.getElementById('book-cover');
+  cv.classList.remove('hidden','opening','fade-out');
+  cv.setAttribute('aria-hidden','false');
+}
+
+function openBookCover() {
+  // The opening animation: rotate the cover page, then fade the overlay
+  const cv = document.getElementById('book-cover');
+  const fid = currentFocusId || DEFAULT_FOCUS();
+  cv.classList.add('opening');
+  setTimeout(() => cv.classList.add('fade-out'), 700);
+  setTimeout(() => {
+    cv.classList.add('hidden');
+    cv.setAttribute('aria-hidden','true');
+    const revealAfterCover = () => {
+      if (transitioning) { setTimeout(revealAfterCover, 120); return; }
+      if (!fid || !PMAP[fid]) return;
+      currentFocusId = null;
+      transitionTo(fid, true);
+    };
+    revealAfterCover();
+    // Persist that the cover has been seen (so it won't auto-show next time)
+    try { localStorage.setItem(COVER_SEEN_KEY, '1'); } catch(e) {}
+  }, 1600);
+}
+
+function maybeShowCoverOnLoad() {
+  let seen = false;
+  try { seen = localStorage.getItem(COVER_SEEN_KEY) === '1'; } catch(e) {}
+  if (!seen) showCover();
+}
+
+// ─── EXPORT TO PDF / PRINT ────────────────────────────────────────────────────
+// Strategy: serialise the live tree SVG → load into <img> via data URL →
+// draw onto canvas at high resolution → embed as JPEG in jsPDF.
+// This keeps Polish/UTF-8 text accurate (rendered as pixels) and avoids
+// the limited font support of jsPDF's vector text.
+
+function resolveAssetUrl(src) {
+  try { return new URL(src, document.baseURI).href; }
+  catch(e) { return src; }
+}
+
+async function srcToDataUrl(src) {
+  if (!src || /^data:/i.test(src)) return src;
+  const abs = resolveAssetUrl(src);
+  if (/^file:/i.test(abs)) {
+    return await new Promise((res, rej) => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const c = document.createElement('canvas');
+          c.width = img.naturalWidth || img.width;
+          c.height = img.naturalHeight || img.height;
+          c.getContext('2d').drawImage(img, 0, 0);
+          res(c.toDataURL('image/png'));
+        } catch(err) { rej(err); }
+      };
+      img.onerror = rej;
+      img.src = abs;
+    });
+  }
+  try {
+    const resp = await fetch(abs);
+    if (!resp.ok) throw new Error('image fetch failed');
+    const blob = await resp.blob();
+    return await new Promise((res, rej) => {
+      const fr = new FileReader();
+      fr.onload = () => res(fr.result);
+      fr.onerror = rej;
+      fr.readAsDataURL(blob);
+    });
+  } catch(e) {
+    return await new Promise((res, rej) => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const c = document.createElement('canvas');
+          c.width = img.naturalWidth || img.width;
+          c.height = img.naturalHeight || img.height;
+          c.getContext('2d').drawImage(img, 0, 0);
+          res(c.toDataURL('image/png'));
+        } catch(err) { rej(err); }
+      };
+      img.onerror = rej;
+      img.src = abs;
+    });
+  }
+}
+
+async function loadCanvasImage(src) {
+  const dataUrl = await srcToDataUrl(src);
+  return await new Promise((res, rej) => {
+    const img = new Image();
+    img.onload = () => res(img);
+    img.onerror = rej;
+    img.src = dataUrl;
+  });
+}
+
+function drawImageCover(ctx, img, w, h) {
+  const iw = img.naturalWidth || img.width || 1;
+  const ih = img.naturalHeight || img.height || 1;
+  const ratio = Math.max(w / iw, h / ih);
+  const dw = iw * ratio, dh = ih * ratio;
+  ctx.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
+}
+
+async function paintPdfTreeBackground(ctx, w, h) {
+  const theme = THEME_CONFIG[activeTheme] || THEME_CONFIG.nature;
+  const styles = getComputedStyle(document.getElementById('tree-container'));
+  ctx.fillStyle = styles.backgroundColor || theme.svgBg || '#efd9b0';
+  ctx.fillRect(0, 0, w, h);
+  try {
+    const paper = await loadCanvasImage(theme.paper);
+    drawImageCover(ctx, paper, w, h);
+  } catch(e) {}
+  const grad = ctx.createLinearGradient(0, 0, w, h);
+  grad.addColorStop(0, 'rgba(255,246,219,0.28)');
+  grad.addColorStop(0.62, 'rgba(202,137,50,0.06)');
+  grad.addColorStop(1, 'rgba(82,44,14,0.16)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+}
+
+async function svgToCanvas(svgEl, scale) {
+  // Clone SVG so we can ensure width/height attributes and inline namespaces.
+  const clone = svgEl.cloneNode(true);
+  const w = parseInt(svgEl.getAttribute('width')) || svgEl.clientWidth || 800;
+  const h = parseInt(svgEl.getAttribute('height')) || svgEl.clientHeight || 600;
+  clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  clone.setAttribute('width', w);
+  clone.setAttribute('height', h);
+
+  // External images (person photos) need to be inlined as data URLs, otherwise
+  // they won't show up when we draw the SVG onto a canvas (CORS-tainted).
+  const imgs = clone.querySelectorAll('image');
+  await Promise.all(Array.from(imgs).map(async (im) => {
+    const href = im.getAttribute('href') || im.getAttribute('xlink:href');
+    if (!href || href.startsWith('data:')) return;
+    try {
+      const dataUrl = await srcToDataUrl(href);
+      im.setAttribute('href', dataUrl);
+      im.removeAttribute('xlink:href');
+    } catch(e) {
+      // Image couldn't be loaded — leave the placeholder face SVG to show instead
+      im.removeAttribute('href');
+    }
+  }));
+
+  const xml = new XMLSerializer().serializeToString(clone);
+  const svg64 = btoa(unescape(encodeURIComponent(xml)));
+  const url = 'data:image/svg+xml;base64,' + svg64;
+
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  await new Promise((res, rej) => {
+    img.onload = res;
+    img.onerror = rej;
+    img.src = url;
+  });
+
+  const canvas = document.createElement('canvas');
+  canvas.width = w * scale;
+  canvas.height = h * scale;
+  const ctx = canvas.getContext('2d');
+  await paintPdfTreeBackground(ctx, canvas.width, canvas.height);
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  return { canvas, w, h };
+}
+
+async function exportToPDF() {
+  const btn = document.getElementById('pdf-btn');
+  const oldLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '...';
+
+  try {
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+      throw new Error('jsPDF nie został załadowany. Sprawdź połączenie sieciowe.');
+    }
+    const { jsPDF } = window.jspdf;
+    const svgEl = document.getElementById('tree-svg');
+
+    // High-res rasterisation: 2× for crisp print at A4 size
+    const { canvas, w, h } = await svgToCanvas(svgEl, 2);
+
+    // Pick orientation by aspect ratio
+    const landscape = w >= h;
+    const pdf = new jsPDF({
+      orientation: landscape ? 'landscape' : 'portrait',
+      unit: 'mm',
+      format: 'a4',
+    });
+
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const margin = 8; // mm
+    const availW = pageW - margin * 2;
+    const availH = pageH - margin * 2;
+
+    // Fit canvas into page while preserving aspect ratio
+    const ratio = w / h;
+    let drawW = availW;
+    let drawH = drawW / ratio;
+    if (drawH > availH) {
+      drawH = availH;
+      drawW = drawH * ratio;
+    }
+    const offX = (pageW - drawW) / 2;
+    const offY = (pageH - drawH) / 2;
+
+    const imgData = canvas.toDataURL('image/jpeg', 0.92);
+    pdf.addImage(imgData, 'JPEG', offX, offY, drawW, drawH, undefined, 'FAST');
+
+    // Filename: family name + focal person name, sanitised
+    const focal = PMAP[currentFocusId];
+    const fname = `${(FAMILY_NAME()||'rodzina').replace(/[^a-zA-Z0-9_-]/g,'_')}_${focal ? (focal.fn+'_'+focal.ln).replace(/[^a-zA-Z0-9_-]/g,'_') : 'drzewo'}.pdf`;
+    pdf.save(fname);
+  } catch(err) {
+    console.error('PDF export failed:', err);
+    alert('Eksport PDF nie powiódł się: ' + (err.message || err));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = oldLabel;
+  }
+}
+
+function printTree() {
+  // Native browser print — the @media print rules above handle the styling.
+  document.body.classList.add('printing');
+  window.print();
+  // Remove the class after the print dialog (small delay to ensure it picked up)
+  setTimeout(() => document.body.classList.remove('printing'), 1000);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+initThemeSwitcher();
+initSeniorMode();
+initBackgroundMusic();
+setAppChromeMetrics();
+window.addEventListener('resize', handleWindowResize);
+rebuildPersonSearch();
+updateNavControls();
+initDragPan();
+document.getElementById('family-name').textContent = FAMILY_NAME();
+updateCoverText();
+maybeShowCoverOnLoad();
+
+transitionTo(DEFAULT_FOCUS(), true);
+setTimeout(() => { setAppChromeMetrics(); centerCurrent(); updateOrphanBtn(); }, 120);
+</script>
+</body>
+</html>
